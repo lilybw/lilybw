@@ -1,21 +1,48 @@
 html{
-  --main-bg-gradient-stop-01: hsl(200, 50%, 80%);
-  --main-bg-gradient-stop-02: hsl(250, 50%, 80%);
+  --site-breath-driver: 0; /* Goes between -1 to 1 */
+  --site-elapsed-seconds: 0; /* Seconds since the page was loaded */
+
+  --bg-saturation-multiplier: calc(var(--site-breath-driver) / 2 + 1.5);
+  --bg-lightness-multiplier: 1;
+  --main-bg-gradient-stop-01: hsl(200, calc(50% * var(--bg-saturation-multiplier)), calc(80% * var(--bg-lightness-multiplier)));
+  --main-bg-gradient-stop-02: hsl(250, calc(50% * var(--bg-saturation-multiplier)), calc(80% * var(--bg-lightness-multiplier)));
   --main-bg-gradient-stop-03: hsl(0, 0%, 100%);
-  --main-bg-gradient-stop-04: hsl(0, 50%, 80%);
+  --main-bg-gradient-stop-04: hsl(0, calc(50% * var(--bg-saturation-multiplier)), calc(80% * var(--bg-lightness-multiplier)));
   --main-bg-gradient: linear-gradient(
       45deg, 
       var(--main-bg-gradient-stop-01),
       var(--main-bg-gradient-stop-02),
       var(--main-bg-gradient-stop-03),
       var(--main-bg-gradient-stop-01),
-      var(--main-bg-gradient-stop-03),
-      var(--main-bg-gradient-stop-02)
+      var(--main-bg-gradient-stop-02),
+      var(--main-bg-gradient-stop-03)
   );
+
+  /* Due to the way colors are diffed against the background, there is no way to figure out how the color is going to turn out really.
+  Pray to whichever god may find mercy upon your futile purpose. 
+  DOBG = Diffed On BackGround
+  */
+  --DOBG-aqua:hsl(0, 40%, 50%);
+  --DOBG-purple:hsl(110, 40%, 40%); 
+  --DOBG-redbrown:hsl(180, 40%, 40%); 
+  --DOBG-copper:hsl(215, 100%, 45%); 
+
+  margin: 0;
+  padding: 0;
 }
 
 body {
   font-family: Gordita, Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+
+  width: 100vw;
+  height: 100vh;
+
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+}
+
+.site-background {
 
   background-image: var(--main-bg-gradient);
   background-position: center;
@@ -24,8 +51,6 @@ body {
 
   width: 100vw;
   height: 100vh;
-
-  overflow: hidden;
 }
 
 .tenbyten{
@@ -34,7 +59,7 @@ body {
   height: 10vh;
 }
 
-.page-title, .page-title-aqua-marine, .page-title-golden {
+.page-title, .page-title-aqua-marine, .page-title-golden, .page-title-purple, .page-title-oscillating-hue  {
   mix-blend-mode: difference;
   -webkit-background-clip: text;
   background-clip: text;
@@ -45,10 +70,17 @@ body {
 }
 
 .page-title-aqua-marine {
-  background-color: hsl(0, 10%, 50%);
+  background-color: var(--DOBG-aqua);
 }
 .page-title-golden {
-  background-color: hsl(80, 40%, 40%);
+  background-color: var(--DOBG-copper);
+}
+.page-title-purple {
+  background-color: var(--DOBG-purple);
+}
+
+.page-title-oscillating-hue {
+  background-color: hsl(calc(var(--site-elapsed-seconds) * 100), 40%, 50%);
 }
 
 
@@ -58,8 +90,8 @@ a {
 
 main {
   text-align: center;
-  padding: 1em;
-  margin: 0 auto;
+  margin: 0;
+  padding: 0;
 }
 
 h1 {

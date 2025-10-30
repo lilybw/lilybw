@@ -1,29 +1,29 @@
-import { createSignal } from "solid-js";
+import { createEffect, createSignal, onCleanup } from "solid-js";
 import "./app.css";
+import { CSSProperty } from "./util/animationUtil";
+import { RepeatingSlider } from "./components/RepeatingSlider";
 
 export default function App() {
-  const [count, setCount] = createSignal(0);
+
+  createEffect(() => {
+    const clearSiteBreath = CSSProperty({name: "--site-breath-driver", target: document.documentElement})
+      .oscillate(0, 2, 0.25);
+
+    const clearSiteElapsedSeconds = CSSProperty({name: "--site-elapsed-seconds", target: document.documentElement})
+      .asFunctionOfElapsedTimeS((elapsedS) => elapsedS);
+    
+    onCleanup(() => {
+      clearSiteBreath();
+      clearSiteElapsedSeconds();
+    })
+  })
+
+  const siteBackground = <div class="site-background"></div>;
 
   return (
     <main>
-      <h1 class="page-title-golden">Hello world!</h1>
-      <button class="increment" onClick={() => setCount(count() + 1)} type="button">
-        Clicks: {count()}
-      </button>
-      <p>
-        Visit{" "}
-        <a href="https://start.solidjs.com" target="_blank">
-          start.solidjs.com
-        </a>{" "}
-        to learn how to build SolidStart apps.
-      </p>
-      <div class="color-dodge-all tenbyten"
-        style="
-            background-color: hsl(0, 0%, 20%);
-            width: 100%;
-            mix-blend-mode: difference;
-            "
-      ></div>
+      <RepeatingSlider durationS={30} paneContent={siteBackground} parentStyle={{height: "100vh", position: "absolute", top: 0, left: 0}}/>
+      <h1 class="page-title-purple">Hello world!</h1>
     </main>
   );
 }
