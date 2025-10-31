@@ -2,14 +2,20 @@ html{
   --site-breath-driver: 0; /* Goes between -1 to 1 */
   --site-elapsed-seconds: 0; /* Seconds since the page was loaded */
 
-  --bg-saturation-multiplier: calc(var(--site-breath-driver) / 2 + 1.5);
+  --bg-saturation-multiplier: calc(var(--site-breath-driver) / 2 + 2);
   --bg-lightness-multiplier: 1;
   --main-bg-gradient-stop-01: hsl(200, calc(50% * var(--bg-saturation-multiplier)), calc(80% * var(--bg-lightness-multiplier)));
   --main-bg-gradient-stop-02: hsl(250, calc(50% * var(--bg-saturation-multiplier)), calc(80% * var(--bg-lightness-multiplier)));
   --main-bg-gradient-stop-03: hsl(0, 0%, 100%);
   --main-bg-gradient-stop-04: hsl(0, calc(50% * var(--bg-saturation-multiplier)), calc(80% * var(--bg-lightness-multiplier)));
   --main-bg-gradient: linear-gradient(
-      45deg, 
+      -45deg, 
+      var(--main-bg-gradient-stop-01),
+      var(--main-bg-gradient-stop-02),
+      var(--main-bg-gradient-stop-03),
+      var(--main-bg-gradient-stop-01),
+      var(--main-bg-gradient-stop-02),
+      var(--main-bg-gradient-stop-03),
       var(--main-bg-gradient-stop-01),
       var(--main-bg-gradient-stop-02),
       var(--main-bg-gradient-stop-03),
@@ -23,6 +29,13 @@ html{
   DOBG = Diffed On BackGround
   */
   --DOBG-aqua:hsl(0, 40%, 50%);
+  --DOBG-aqua-horizontal-gradient: linear-gradient(
+      0deg,
+      hsl(0, 80%, 50%),
+      hsl(0, 40%, 50%), 
+      hsl(0, 80%, 50%)
+  );
+
   --DOBG-purple:hsl(110, 40%, 40%); 
   --DOBG-redbrown:hsl(180, 40%, 40%); 
   --DOBG-copper:hsl(215, 100%, 45%); 
@@ -43,13 +56,16 @@ body {
 }
 
 .site-background {
+  position: absolute;
+  top: 0; 
+  left: 0;
 
   background-image: var(--main-bg-gradient);
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
 
-  width: 100vw;
+  width: 300vw;
   height: 100vh;
 }
 
@@ -67,10 +83,12 @@ body {
   color: transparent; /* fallback */
   font-style: bold;
   font-size: 30vh;
+
+  filter: drop-shadow(2px 2px 4px rgba(255, 255, 255, 0.6));
 }
 
 .page-title-aqua-marine {
-  background-color: var(--DOBG-aqua);
+  background-image: var(--DOBG-aqua-horizontal-gradient);
 }
 .page-title-golden {
   background-color: var(--DOBG-copper);

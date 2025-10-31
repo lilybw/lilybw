@@ -1,0 +1,41 @@
+.menu-bar{
+    position: fixed;
+    bottom: -10%;
+    left: 20%;
+
+    transform: translateX(-50%) rotate(45deg);
+    transform-origin: center;
+
+    background-color: var(--DOBG-purple);
+
+    height: 20%;
+    width: 100%;
+    display: flex;
+    padding: 1rem;
+    padding-left: 50rem;
+    padding-top: 4rem;
+
+    mix-blend-mode: difference;
+}
+
+.menu-bar-button {
+    background-color: var(--DOBG-aqua);
+    border-radius: 0.5rem;
+    cursor: pointer;
+    height: 3rem;
+    width: 6rem;
+    
+    transform: rotate(-45deg);
+    transform-origin: right;
+
+
+    mix-blend-mode: difference;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent; /* fallback */
+    font-style: bold;
+    font-size: 3vh;
+
+    filter: drop-shadow(2px 2px 4px rgba(255, 255, 255, 0.6))
+}
