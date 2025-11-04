@@ -179,11 +179,6 @@ function computeNormalizedViewBox(bounds: PathBounds): string {
     
     return `${left} ${top} ${maxDim} ${maxDim}`;
 }
-
-export enum PathModifier {
-    MirrorX, MirrorY
-}
-
 export interface SVGOptions {
     modifiers?: PathModifier | PathModifier[];
     attributes?: JSX.SvgSVGAttributes<SVGSVGElement>;
@@ -201,14 +196,11 @@ const SVG0 = (
     path: DrawDirective[], 
     options?: SVGOptions
 ): JSX.Element => {
-    const {modifiers, attributes} = normalizeOptions(options);
+    const { modifiers, attributes } = normalizeOptions(options);
 
     let computedPath = path;
     for (const modifier of Array.isArray(modifiers) ? modifiers : [modifiers]) {
-        switch (modifier) {
-            case PathModifier.MirrorX: computedPath = [...computedPath, ...mirrorDirectivesX(computedPath)]; break;
-            case PathModifier.MirrorY: computedPath = [...computedPath, ...mirrorDirectivesOnY(computedPath)]; break;
-        }
+        computedPath = modifier(computedPath);
     }
     
     // Compute bounds
@@ -226,7 +218,74 @@ const SVG0 = (
  */
 export const SVG = SVG0;
 
+type PathModifier = (existingDirectives: DrawDirective[]) => DrawDirective[];
+
+type vec2<T> = [T, T];
+type vec3<T> = [T, T, T];
+type int32 = number;
+type uint32 = number;
+
 export class Path {
+
+    public static Modifier = {
+
+        Mirror: {
+            X: (): PathModifier => {
+                return (existingDirectives: DrawDirective[]) => {
+                    return [...existingDirectives, ...mirrorDirectivesX(existingDirectives)]
+                }
+            },
+            Y: (): PathModifier => {
+                return (existingDirectives: DrawDirective[]) => {
+                    return [...existingDirectives, ...mirrorDirectivesOnY(existingDirectives)]
+                }
+            }
+        },
+
+        Array: (direction: vec2<number>, spacing: number, count: uint32) => {
+            return (existingDirectives: DrawDirective[]) => {
+                const newDirectives: DrawDirective[] = [];
+                for (let i = 0; i < count; i++) {
+                    const offsetX = direction[0] * spacing * i;
+                    const offsetY = direction[1] * spacing * i;
+                    for (const dir of existingDirectives) {
+                        switch (dir.type) {
+                            case 'M':
+                                newDirectives.push({ type: 'M', x: dir.x + offsetX, y: dir.y + offsetY });
+                                break;
+                            case 'L':
+                                newDirectives.push({ type: 'L', x: dir.x + offsetX, y: dir.y + offsetY });
+                                break;
+                            case 'C':
+                                newDirectives.push({
+                                    type: 'C',
+                                    x1: dir.x1 + offsetX, y1: dir.y1 + offsetY,
+                                    x2: dir.x2 + offsetX, y2: dir.y2 + offsetY,
+                                    x: dir.x + offsetX, y: dir.y + offsetY
+                                });
+                                break;
+                            case 'A':
+                                newDirectives.push({
+                                    type: 'A',
+                                    rx: dir.rx, ry: dir.ry,
+                                    rotation: dir.rotation,
+                                    largeArc: dir.largeArc,
+                                    sweep: dir.sweep,
+                                    x: dir.x + offsetX, y: dir.y + offsetY
+                                });
+                                break;
+                            case 'E':
+                                newDirectives.push({ type: 'E' });
+                        }
+                    }
+                }
+                return newDirectives;
+            }
+        }
+
+    } as const;
+
+
     public static LineTo = (x: number, y: number): DrawDirective => {
         return { type: 'L', x, y };
     }

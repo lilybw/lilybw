@@ -1,6 +1,6 @@
 import { test, expect, suite, describe } from "vitest"
 import { render } from "@solidjs/testing-library"
-import { SVG, Path, DrawDirective, PathModifier } from "./svgUtil"
+import { SVG, Path, DrawDirective } from "./svgUtil"
 
 suite("SVG Util Test Suite", () => {
 
@@ -126,7 +126,7 @@ suite("SVG Util Test Suite", () => {
 
         test("mirrored path has negated X coordinates", () => {
             const path = [Path.M(10, 20), Path.L(30, 40)];
-            const { container } = render(() => SVG(path, { modifiers: PathModifier.MirrorY }));
+            const { container } = render(() => SVG(path, { modifiers: Path.Modifier.Mirror.Y() }));
             
             const paths = container.querySelectorAll("path");
             const path1 = paths[0].getAttribute("d");
@@ -142,7 +142,7 @@ suite("SVG Util Test Suite", () => {
 
         test("mirrors curves correctly", () => {
             const path = [Path.M(0, 0), Path.C(10, 10, 20, 20, 30, 30)];
-            const { container } = render(() => SVG(path, { modifiers: PathModifier.MirrorY }));
+            const { container } = render(() => SVG(path, { modifiers: Path.Modifier.Mirror.Y() }));
             
             const paths = container.querySelectorAll("path");
             const path1 = paths[0].getAttribute("d");
