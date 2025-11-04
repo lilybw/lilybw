@@ -11,9 +11,9 @@
     height: 20%;
     width: 100%;
     display: flex;
-    padding: 1rem;
-    padding-left: 50rem;
-    padding-top: 4rem;
+    padding-left: 42rem;
+    padding-top: 2rem;
+    padding-bottom: 1rem;
 
     mix-blend-mode: difference;
 }
@@ -37,5 +37,6 @@
     font-style: bold;
     font-size: 3vh;
 
-    filter: drop-shadow(2px 2px 4px rgba(255, 255, 255, 0.6))
+    filter: drop-shadow(2px 2px 4px rgba(255, 255, 255, 0.6));
+
 }
