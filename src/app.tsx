@@ -25,16 +25,15 @@ export default function App() {
       <div class="site-background"></div>
       <h1 class="page-title-aqua-marine">ABSOLUTELY NOT KDA</h1>
       <MenuBar />
-      {SVG([Path.M(0, 0), Path.L(100, 100)], {
+      {SVG([Path.M(0, 0), Path.L(50, 0), Path.L(75, -50)], {
         attributes: { 
-          stroke: "red", 
-          "stroke-width": 2,
+          color: "red", 
+          "stroke-width": 10,
           style: "position: absolute; top: 50%; left: 50%; width: 30%; height: 30%; pointer-events: none;"
         },
         modifiers: [
-          Path.Modifier.Mirror.Y(), 
-          Path.Modifier.Mirror.X(),
-          Path.Modifier.Array([0,-1], 10, 5)
+          //Path.Modifier.Mirror.Y(), 
+          Path.Modifier.Array([5,0], 10, 1)
         ]
       })
       }

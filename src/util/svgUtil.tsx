@@ -1,15 +1,23 @@
 import { Component, JSX } from "solid-js";
 
-export type DrawDirective = 
+export type DrawDirective<T extends PredefinedResources = {}> = 
     | { type: 'M'; x: number; y: number }
     | { type: 'L'; x: number; y: number }
     | { type: 'C'; x1: number; y1: number; x2: number; y2: number; x: number; y: number }
     | { type: 'A'; rx: number; ry: number; rotation: number; largeArc: boolean; sweep: boolean; x: number; y: number }
     | { type: 'E' };
 
-interface Point {
-    x: number;
-    y: number;
+    // (res: T) => DrawDirective<T>[];
+
+export type DrawDirectiveSupplier<T extends PredefinedResources = {}> = 
+    | DD2<T>[]
+    | ((resources: T) => DD2<T>[]);
+
+export interface DD2<T extends PredefinedResources = {}> {
+    toString(): string;
+    /* Nearest possible approximation of a point repressentation of the draw directive.
+    In case of curves, this should include control points as well. */
+    getPoint(): vec2<number>[];
 }
 
 interface PathBounds {
@@ -19,31 +27,32 @@ interface PathBounds {
     maxY: number;
 }
 
+
 /**
  * Extract all points from draw directives for bounds calculation
  */
-function extractPoints(directives: DrawDirective[]): Point[] {
-    const points: Point[] = [];
-    
+function extractPoints(directives: DrawDirective[]): vec2<number>[] {
+    const points: vec2<number>[] = [];
+
     for (const dir of directives) {
         switch (dir.type) {
             case 'M':
             case 'L':
-                points.push({ x: dir.x, y: dir.y });
+                points.push([ dir.x, dir.y ]);
                 break;
             case 'C':
                 points.push(
-                    { x: dir.x1, y: dir.y1 },
-                    { x: dir.x2, y: dir.y2 },
-                    { x: dir.x, y: dir.y }
+                    [ dir.x1, dir.y1 ],
+                    [ dir.x2, dir.y2 ],
+                    [ dir.x, dir.y ]
                 );
                 break;
             case 'A':
-                points.push({ x: dir.x, y: dir.y });
+                points.push([ dir.x, dir.y ]);
                 // For arcs, we approximate by including the radii as potential bounds
                 points.push(
-                    { x: dir.x + dir.rx, y: dir.y + dir.ry },
-                    { x: dir.x - dir.rx, y: dir.y - dir.ry }
+                    [ dir.x + dir.rx, dir.y + dir.ry ],
+                    [ dir.x - dir.rx, dir.y - dir.ry ]
                 );
                 break;
         }
@@ -55,19 +64,19 @@ function extractPoints(directives: DrawDirective[]): Point[] {
 /**
  * Calculate bounds of points
  */
-function getBounds(points: Point[]): PathBounds {
+function getBounds(points: vec2<number>[]): PathBounds {
     if (points.length === 0) {
         return { minX: -1, maxX: 1, minY: -1, maxY: 1 };
     }
 
     return points.reduce(
         (bounds, p) => ({
-            minX: Math.min(bounds.minX, p.x),
-            maxX: Math.max(bounds.maxX, p.x),
-            minY: Math.min(bounds.minY, p.y),
-            maxY: Math.max(bounds.maxY, p.y),
+            minX: Math.min(bounds.minX, p[0]),
+            maxX: Math.max(bounds.maxX, p[0]),
+            minY: Math.min(bounds.minY, p[1]),
+            maxY: Math.max(bounds.maxY, p[1]),
         }),
-        { minX: points[0].x, maxX: points[0].x, minY: points[0].y, maxY: points[0].y }
+        { minX: points[0][0], maxX: points[0][0], minY: points[0][1], maxY: points[0][1] }
     );
 }
 
@@ -179,22 +188,28 @@ function computeNormalizedViewBox(bounds: PathBounds): string {
     
     return `${left} ${top} ${maxDim} ${maxDim}`;
 }
-export interface SVGOptions {
-    modifiers?: PathModifier | PathModifier[];
+
+type Resource = ""; //linearGradient, radialGradient, pattern, clipPath, mask
+type PredefinedResources = { [key: string]: Resource; }; //Any object containing only Resource types under any name
+
+export interface SVGOptions<T extends PredefinedResources = {}> {
+    modifiers?: PathModifier<T> | PathModifier<T>[];
     attributes?: JSX.SvgSVGAttributes<SVGSVGElement>;
+    resources?: T;
 }
 const normalizeOptions = (options?: SVGOptions): Required<SVGOptions> => {
     return {
         modifiers: options?.modifiers 
             ? (Array.isArray(options.modifiers) ? options.modifiers : [options.modifiers]) 
             : [],
-        attributes: options?.attributes ?? {}
+        attributes: options?.attributes ?? {},
+        resources: options?.resources ?? {}
     };
 }
 
-const SVG0 = (
-    path: DrawDirective[], 
-    options?: SVGOptions
+const SVG0 = <T extends PredefinedResources = {}>(
+    path: DrawDirective<T>[], 
+    options?: SVGOptions<T>
 ): JSX.Element => {
     const { modifiers, attributes } = normalizeOptions(options);
 
@@ -218,14 +233,27 @@ const SVG0 = (
  */
 export const SVG = SVG0;
 
-type PathModifier = (existingDirectives: DrawDirective[]) => DrawDirective[];
+type PathModifier<T extends PredefinedResources = {}> = (existingDirectives: DrawDirective<T>[]) => DrawDirective<T>[];
 
 type vec2<T> = [T, T];
 type vec3<T> = [T, T, T];
 type int32 = number;
 type uint32 = number;
+type float32 = number;
 
 export class Path {
+
+    public static Symbol: { [key: string]: string } = {
+        MoveTo: "M",
+        MoveToRel: "m",
+        LineTo: "L",
+        LineToRel: "l",
+        CurveTo: "C",
+        CurveToRel: "c",
+        ArcTo: "A",
+        ArcToRel: "a",
+        End: "E"
+    } as const;
 
     public static Modifier = {
 
@@ -285,6 +313,9 @@ export class Path {
 
     } as const;
 
+    private static Vec2Directive<T extends PredefinedResources = {}>(symbol: keyof typeof Path.Symbol, vec: vec2<number>): DrawDirectiveSupplier<T> {
+        return undefined as any;
+    }
 
     public static LineTo = (x: number, y: number): DrawDirective => {
         return { type: 'L', x, y };
@@ -327,12 +358,3 @@ export class Path {
     public static E = Path.End;
 }
 
-// Example usage:
-// const myPath = [
-//     Path.M(0, 0),
-//     Path.L(50, 50),
-//     Path.C(60, 60, 70, 40, 100, 50),
-//     Path.E()
-// ];
-// 
-// <SVG path={myPath} width="400" height="400" />
