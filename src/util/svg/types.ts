@@ -1,0 +1,59 @@
+import { JSX } from "solid-js/jsx-runtime";
+import { Path } from "./svgUtil";
+
+export type DrawDirective<T extends PredefinedResources = {}> = 
+    | { type: 'M'; x: number; y: number }
+    | { type: 'L'; x: number; y: number }
+    | { type: 'C'; x1: number; y1: number; x2: number; y2: number; x: number; y: number }
+    | { type: 'A'; rx: number; ry: number; rotation: number; largeArc: boolean; sweep: boolean; x: number; y: number }
+    | { type: 'E' };
+
+    // (res: T) => DrawDirective<T>[];
+
+
+export interface SVGOptions<T extends PredefinedResources = {}> {
+    modifiers?: PathModifier<T> | PathModifier<T>[];
+    attributes?: JSX.SvgSVGAttributes<SVGSVGElement>;
+    resources?: T;
+}
+
+export type SVGSymbol = keyof typeof Path.Symbol;
+
+export interface DD2<T extends PredefinedResources = {}> {
+    toString(): string;
+    /* Nearest possible approximation of a point repressentation of the draw directive.
+    In case of curves, this should include control points as well. */
+    getPoint(): vec2<number>[];
+    getSymbol(): SVGSymbol;
+}
+
+class DD2C {
+
+}
+
+export type DrawDirectiveSupplier<T extends PredefinedResources = {}> = 
+    | DD2<T>[]
+    | ((resources: T) => DD2<T>[]);
+
+export interface PathBounds {
+    minX: number;
+    maxX: number;
+    minY: number;
+    maxY: number;
+}
+
+export interface Resource {}; 
+export type ResourceSupplier = (/* params tbd */) => Resource; 
+export interface ReferencableRessource extends Resource { //linearGradient, radialGradient, pattern, clipPath, mask
+    getURL(): string;
+}
+export type PredefinedResources = { [key: string]: Resource; }; //Any object containing only Resource types under any name
+
+
+export type PathModifier<T extends PredefinedResources = {}> = (existingDirectives: DrawDirective<T>[]) => DrawDirective<T>[];
+
+export type vec2<T> = [T, T];
+export type vec3<T> = [T, T, T];
+export type int32 = number;
+export type uint32 = number;
+export type float32 = number;

@@ -1,31 +1,5 @@
 import { Component, JSX } from "solid-js";
-
-export type DrawDirective<T extends PredefinedResources = {}> = 
-    | { type: 'M'; x: number; y: number }
-    | { type: 'L'; x: number; y: number }
-    | { type: 'C'; x1: number; y1: number; x2: number; y2: number; x: number; y: number }
-    | { type: 'A'; rx: number; ry: number; rotation: number; largeArc: boolean; sweep: boolean; x: number; y: number }
-    | { type: 'E' };
-
-    // (res: T) => DrawDirective<T>[];
-
-export type DrawDirectiveSupplier<T extends PredefinedResources = {}> = 
-    | DD2<T>[]
-    | ((resources: T) => DD2<T>[]);
-
-export interface DD2<T extends PredefinedResources = {}> {
-    toString(): string;
-    /* Nearest possible approximation of a point repressentation of the draw directive.
-    In case of curves, this should include control points as well. */
-    getPoint(): vec2<number>[];
-}
-
-interface PathBounds {
-    minX: number;
-    maxX: number;
-    minY: number;
-    maxY: number;
-}
+import { DrawDirective, vec2, PathBounds, PredefinedResources, PathModifier, uint32, DrawDirectiveSupplier, SVGOptions } from "./types";
 
 
 /**
@@ -189,14 +163,6 @@ function computeNormalizedViewBox(bounds: PathBounds): string {
     return `${left} ${top} ${maxDim} ${maxDim}`;
 }
 
-type Resource = ""; //linearGradient, radialGradient, pattern, clipPath, mask
-type PredefinedResources = { [key: string]: Resource; }; //Any object containing only Resource types under any name
-
-export interface SVGOptions<T extends PredefinedResources = {}> {
-    modifiers?: PathModifier<T> | PathModifier<T>[];
-    attributes?: JSX.SvgSVGAttributes<SVGSVGElement>;
-    resources?: T;
-}
 const normalizeOptions = (options?: SVGOptions): Required<SVGOptions> => {
     return {
         modifiers: options?.modifiers 
@@ -233,13 +199,6 @@ const SVG0 = <T extends PredefinedResources = {}>(
  */
 export const SVG = SVG0;
 
-type PathModifier<T extends PredefinedResources = {}> = (existingDirectives: DrawDirective<T>[]) => DrawDirective<T>[];
-
-type vec2<T> = [T, T];
-type vec3<T> = [T, T, T];
-type int32 = number;
-type uint32 = number;
-type float32 = number;
 
 export class Path {
 
@@ -357,4 +316,3 @@ export class Path {
     
     public static E = Path.End;
 }
-
