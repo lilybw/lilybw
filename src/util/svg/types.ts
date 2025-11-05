@@ -10,7 +10,6 @@ export type DrawDirective<T extends PredefinedResources = {}> =
 
     // (res: T) => DrawDirective<T>[];
 
-
 export interface SVGOptions<T extends PredefinedResources = {}> {
     modifiers?: PathModifier<T> | PathModifier<T>[];
     attributes?: JSX.SvgSVGAttributes<SVGSVGElement>;
