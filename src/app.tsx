@@ -2,7 +2,7 @@ import { createEffect, createSignal, onCleanup } from "solid-js";
 import "./app.css";
 import { CSSProperty } from "./util/animationUtil";
 import { MenuBar } from "./components/MenuBar";
-import { Path, SVG } from "./util/svg/svgUtil";
+import { SVG, Path } from "./util/svg/entrypoint";
 
 export default function App() {
 

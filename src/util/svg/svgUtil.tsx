@@ -1,11 +1,10 @@
 import { Component, JSX } from "solid-js";
-import { DrawDirective, vec2, PathBounds, PredefinedResources, PathModifier, uint32, DrawDirectiveSupplier, SVGOptions } from "./types";
-
+import { DrawDirective, vec2, PathBounds, PredefinedResources, PathModifier, uint32, DrawDirectiveSupplier, SVGOptions, PathOptions } from "./types";
 
 /**
  * Extract all points from draw directives for bounds calculation
  */
-function extractPoints(directives: DrawDirective[]): vec2<number>[] {
+export function extractPoints(directives: DrawDirective[]): vec2<number>[] {
     const points: vec2<number>[] = [];
 
     for (const dir of directives) {
@@ -38,7 +37,7 @@ function extractPoints(directives: DrawDirective[]): vec2<number>[] {
 /**
  * Calculate bounds of points
  */
-function getBounds(points: vec2<number>[]): PathBounds {
+export function getBounds(points: vec2<number>[]): PathBounds {
     if (points.length === 0) {
         return { minX: -1, maxX: 1, minY: -1, maxY: 1 };
     }
@@ -57,7 +56,7 @@ function getBounds(points: vec2<number>[]): PathBounds {
 /**
  * Mirror directives around Y-axis
  */
-function mirrorDirectivesOnY(directives: DrawDirective[]): DrawDirective[] {
+export function mirrorDirectivesOnY(directives: DrawDirective[]): DrawDirective[] {
     return directives.map(dir => {
         switch (dir.type) {
             case 'M':
@@ -89,7 +88,7 @@ function mirrorDirectivesOnY(directives: DrawDirective[]): DrawDirective[] {
 /**
  * Mirror directives around X-axis
  */
-function mirrorDirectivesX(directives: DrawDirective[]): DrawDirective[] {
+export function mirrorDirectivesX(directives: DrawDirective[]): DrawDirective[] {
     return directives.map(dir => {
         switch (dir.type) {
             case 'M':
@@ -121,7 +120,7 @@ function mirrorDirectivesX(directives: DrawDirective[]): DrawDirective[] {
 /**
  * Convert directives to SVG path string
  */
-function directivesToPath(directives: DrawDirective[]): string {
+export function directivesToPath(directives: DrawDirective[]): string {
     return directives.map(dir => {
         switch (dir.type) {
             case 'M':
@@ -143,7 +142,7 @@ function directivesToPath(directives: DrawDirective[]): string {
 /**
  * Normalize bounds to -1,-1 to 1,1 space, maintaining aspect ratio
  */
-function computeNormalizedViewBox(bounds: PathBounds): string {
+export function computeNormalizedViewBox(bounds: PathBounds): string {
     const width = bounds.maxX - bounds.minX;
     const height = bounds.maxY - bounds.minY;
     const maxDim = Math.max(width, height);
@@ -163,156 +162,19 @@ function computeNormalizedViewBox(bounds: PathBounds): string {
     return `${left} ${top} ${maxDim} ${maxDim}`;
 }
 
-const normalizeOptions = (options?: SVGOptions): Required<SVGOptions> => {
+export const normalizeSVGOptions = (options?: SVGOptions): Required<SVGOptions> => {
     return {
-        modifiers: options?.modifiers 
-            ? (Array.isArray(options.modifiers) ? options.modifiers : [options.modifiers]) 
-            : [],
         attributes: options?.attributes ?? {},
-        resources: options?.resources ?? {}
+        children: options?.children ?? null   
     };
 }
 
-const SVG0 = <T extends PredefinedResources = {}>(
-    path: DrawDirective<T>[], 
-    options?: SVGOptions<T>
-): JSX.Element => {
-    const { modifiers, attributes } = normalizeOptions(options);
-
-    let computedPath = path;
-    for (const modifier of Array.isArray(modifiers) ? modifiers : [modifiers]) {
-        computedPath = modifier(computedPath);
-    }
-    
-    // Compute bounds
-    const bounds = getBounds(extractPoints(computedPath));
-    
-    return (
-        <svg viewBox={computeNormalizedViewBox(bounds)} {...attributes}>
-            <path d={directivesToPath(computedPath)} stroke="currentColor" fill="none" />
-        </svg>
-    );
-};
-/**
- * Simple utility taking a path and computing the viewbox so that the path is centered within it. 
- * The viewbox is computed in a normalized space maintaining aspect ratio
- */
-export const SVG = SVG0;
-
-
-export class Path {
-
-    public static Symbol: { [key: string]: string } = {
-        MoveTo: "M",
-        MoveToRel: "m",
-        LineTo: "L",
-        LineToRel: "l",
-        CurveTo: "C",
-        CurveToRel: "c",
-        ArcTo: "A",
-        ArcToRel: "a",
-        End: "E"
-    } as const;
-
-    public static Modifier = {
-
-        Mirror: {
-            X: (): PathModifier => {
-                return (existingDirectives: DrawDirective[]) => {
-                    return [...existingDirectives, ...mirrorDirectivesX(existingDirectives)]
-                }
-            },
-            Y: (): PathModifier => {
-                return (existingDirectives: DrawDirective[]) => {
-                    return [...existingDirectives, ...mirrorDirectivesOnY(existingDirectives)]
-                }
-            }
-        },
-
-        Array: (direction: vec2<number>, spacing: number, count: uint32) => {
-            return (existingDirectives: DrawDirective[]) => {
-                const newDirectives: DrawDirective[] = [];
-                for (let i = 0; i < count; i++) {
-                    const offsetX = direction[0] * spacing * i;
-                    const offsetY = direction[1] * spacing * i;
-                    for (const dir of existingDirectives) {
-                        switch (dir.type) {
-                            case 'M':
-                                newDirectives.push({ type: 'M', x: dir.x + offsetX, y: dir.y + offsetY });
-                                break;
-                            case 'L':
-                                newDirectives.push({ type: 'L', x: dir.x + offsetX, y: dir.y + offsetY });
-                                break;
-                            case 'C':
-                                newDirectives.push({
-                                    type: 'C',
-                                    x1: dir.x1 + offsetX, y1: dir.y1 + offsetY,
-                                    x2: dir.x2 + offsetX, y2: dir.y2 + offsetY,
-                                    x: dir.x + offsetX, y: dir.y + offsetY
-                                });
-                                break;
-                            case 'A':
-                                newDirectives.push({
-                                    type: 'A',
-                                    rx: dir.rx, ry: dir.ry,
-                                    rotation: dir.rotation,
-                                    largeArc: dir.largeArc,
-                                    sweep: dir.sweep,
-                                    x: dir.x + offsetX, y: dir.y + offsetY
-                                });
-                                break;
-                            case 'E':
-                                newDirectives.push({ type: 'E' });
-                        }
-                    }
-                }
-                return newDirectives;
-            }
-        }
-
-    } as const;
-
-    private static Vec2Directive<T extends PredefinedResources = {}>(symbol: keyof typeof Path.Symbol, vec: vec2<number>): DrawDirectiveSupplier<T> {
-        return undefined as any;
-    }
-
-    public static LineTo = (x: number, y: number): DrawDirective => {
-        return { type: 'L', x, y };
-    }
-    
-    public static L = Path.LineTo;
-    
-    public static Curve = (
-        x1: number, y1: number, 
-        x2: number, y2: number, 
-        x: number, y: number
-    ): DrawDirective => {
-        return { type: 'C', x1, y1, x2, y2, x, y };
-    }
-    
-    public static C = Path.Curve;
-    
-    public static ArcTo = (
-        rx: number, ry: number, 
-        rotation: number, 
-        largeArc: boolean, 
-        sweep: boolean, 
-        x: number, y: number
-    ): DrawDirective => {
-        return { type: 'A', rx, ry, rotation, largeArc, sweep, x, y };
-    }
-    
-    public static A = Path.ArcTo;
-    
-    public static MoveTo = (x: number, y: number): DrawDirective => {
-        return { type: 'M', x, y };
-    }
-    
-    public static M = Path.MoveTo;
-    
-    public static End = (): DrawDirective => {
-        return { type: 'E' };
-    }
-    
-    public static E = Path.End;
+export const normalizePathOptions = <T extends PredefinedResources = {}>(options: PathOptions<T>): Required<PathOptions<T>> => {
+    return {
+        modifiers: options?.modifiers 
+                ? (Array.isArray(options.modifiers) ? options.modifiers : [options.modifiers]) 
+                : [],
+        attributes: options?.attributes ?? {},
+        resources: options?.resources ?? {} as T
+    };
 }

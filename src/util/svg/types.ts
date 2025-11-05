@@ -1,6 +1,5 @@
 import { JSX } from "solid-js/jsx-runtime";
-import { Path } from "./svgUtil";
-
+import { Path } from "./entrypoint";
 export type DrawDirective<T extends PredefinedResources = {}> = 
     | { type: 'M'; x: number; y: number }
     | { type: 'L'; x: number; y: number }
@@ -11,10 +10,15 @@ export type DrawDirective<T extends PredefinedResources = {}> =
     // (res: T) => DrawDirective<T>[];
 
 export interface SVGOptions<T extends PredefinedResources = {}> {
-    modifiers?: PathModifier<T> | PathModifier<T>[];
     attributes?: JSX.SvgSVGAttributes<SVGSVGElement>;
-    resources?: T;
+    children?: JSX.Element;
 }
+
+export interface PathOptions<T extends PredefinedResources = {}> {
+    attributes: JSX.PathSVGAttributes<SVGPathElement>;
+    resources?: T;
+    modifiers?: PathModifier<T> | PathModifier<T>[];
+};
 
 export type SVGSymbol = keyof typeof Path.Symbol;
 
