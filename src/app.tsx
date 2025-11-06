@@ -24,13 +24,17 @@ export default function App() {
       <div class="site-background"></div>
       <h1 class="page-title-aqua-marine">ABSOLUTELY NOT KDA</h1>
       <MenuBar />
-      {SVG({ attributes: { 
-        style: "position: absolute; left: 50%; top: 50%; width: 20%; height: 20%;" 
-      } })(
-        [ Path.M(-20, 0), Path.L(20,0), Path.L(35, 20), Path.L(35, 40) ], 
+      {SVG({ 
+        htmlAttributes: { 
+          style: "position: absolute; left: 50%; top: 50%; width: 20%; height: 20%;"  
+        }, 
+        defs: {
+          asdklm: "hello world"
+        }
+      })(
+        [ Path.M(-20, 0), Path.L(20,0), Path.L(35, -20), Path.L(35, -40) ], 
         { modifiers: [
-          Path.Modifier.Mirror.Y(),
-          Path.Modifier.Array([1, 0], 10, 5)
+          //Path.Modifier.Array([1, 0], 10, 5)
           ],
            
         }

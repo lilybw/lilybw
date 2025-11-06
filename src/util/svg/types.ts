@@ -3,14 +3,14 @@ import { Path } from "./entrypoint";
 import { _DirectiveSymbols, DirectiveSymbol } from "./symbol";
 import { mirrorCustomVec2 } from "./svgUtil";
 
-export interface SVGOptions {
-    attributes?: JSX.SvgSVGAttributes<SVGSVGElement>;
+export interface SVGOptions<T extends PredefinedResources = {}> {
+    htmlAttributes?: JSX.SvgSVGAttributes<SVGSVGElement>;
     children?: JSX.Element;
+    defs?: T;
 }
 
 export interface PathOptions<T extends PredefinedResources = {}> {
-    attributes?: JSX.PathSVGAttributes<SVGPathElement>;
-    resources?: T;
+    htmlAttributes?: JSX.PathSVGAttributes<SVGPathElement>;
     modifiers?: PathModifier<T> | PathModifier<T>[];
 };
 

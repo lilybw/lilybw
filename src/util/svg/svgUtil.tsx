@@ -136,8 +136,9 @@ export function computeNormalizedViewBox(bounds: PathBounds): string {
 
 export const normalizeSVGOptions = (options?: SVGOptions): Required<SVGOptions> => {
     return {
-        attributes: options?.attributes ?? {},
-        children: options?.children ?? null   
+        htmlAttributes: options?.htmlAttributes ?? {},
+        children: options?.children ?? null,
+        defs: options?.defs ?? {} as any   
     };
 }
 
@@ -146,7 +147,23 @@ export const normalizePathOptions = <T extends PredefinedResources = {}>(options
         modifiers: options?.modifiers 
                 ? (Array.isArray(options.modifiers) ? options.modifiers : [options.modifiers]) 
                 : [],
-        attributes: options?.attributes ?? {},
-        resources: options?.resources ?? {} as T
+        htmlAttributes: options?.htmlAttributes ?? {},
     };
 }
+
+export const resolveReferencedDefs = <T extends PredefinedResources = {}>(svgID: string, attributes: PathOptions<T>['htmlAttributes']): JSX.PathSVGAttributes<SVGPathElement> => {
+    if (!attributes) { return {}; }
+
+    const resolvedAttributes: JSX.PathSVGAttributes<SVGPathElement> = {};
+    for (const [key, value] of Object.entries(attributes)) {
+        if (value && typeof value === 'object' && 'getURL' in value && typeof value.getURL === 'function') {
+            //@ts-ignore
+            resolvedAttributes[key] = `url(#${svgID}-${value.getURL()})`;
+        } else {
+            //@ts-ignore
+            resolvedAttributes[key] = value;
+        }
+    }
+
+    return resolvedAttributes;
+};

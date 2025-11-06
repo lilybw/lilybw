@@ -216,7 +216,7 @@ suite("SVG Util Test Suite", () => {
         test("accepts custom attributes", () => {
             const path = [Path.M(0, 0), Path.L(10, 10)];
             const { container } = render(() => SVG({ 
-                attributes: {
+                htmlAttributes: {
                     width: "200", 
                     height: "300",
                     class: "my-svg"
@@ -232,7 +232,7 @@ suite("SVG Util Test Suite", () => {
         test("custom attributes do override viewBox", () => {
             const path = [Path.M(0, 0), Path.L(10, 10)];
             const { container } = render(() => SVG(
-                { attributes: {
+                { htmlAttributes: {
                     viewBox: "0 0 100 100" // This should overwrite the computed viewBox
                 } }
             )(path, { 
@@ -251,7 +251,7 @@ suite("SVG Util Test Suite", () => {
         test("applies stroke styling", () => {
             const path = [Path.M(0, 0), Path.L(10, 10)];
             const { container } = render(() => SVG({ 
-                attributes: {
+                htmlAttributes: {
                     stroke: "red",
                     "stroke-width": "2"
                 }

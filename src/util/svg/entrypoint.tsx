@@ -1,28 +1,32 @@
 import { JSX } from "solid-js/jsx-runtime";
 import { PredefinedResources, SVGOptions, PathModifier, vec2, uint32, DrawDirectiveSupplier, PathOptions, DrawDirective, DrawDirectiveVec2, DrawDirectiveCurve, DrawDirectiveArc, DDEndOfPath, FlattenedArgs, DirectiveOrSupplier } from "./types";
-import { normalizeSVGOptions, getBounds, extractPoints, computeNormalizedViewBox, directivesToPath, normalizePathOptions, normalizeEntrypointArgs } from "./svgUtil";
+import { normalizeSVGOptions, getBounds, extractPoints, computeNormalizedViewBox, directivesToPath, normalizePathOptions, normalizeEntrypointArgs, resolveReferencedDefs } from "./svgUtil";
 import { _PathModifiers } from "./modifiers";
 import { _DirectiveSymbols, DirectiveSymbol } from "./symbol";
+import { getNextHash } from "../hashUtil";
 
-type SVGEntrypoint = (
-    ...args: (DirectiveOrSupplier<any>[] | PathOptions<any>)[]
+type SVGEntrypoint<T extends PredefinedResources = {}> = (
+    ...args: (DirectiveOrSupplier<T>[] | PathOptions<T>)[]
 ) => JSX.Element;
 
-const SVG0 = (options?: SVGOptions): SVGEntrypoint => {
-    const normalized = normalizeSVGOptions(options);
+const SVG0 = <T extends PredefinedResources>(options?: SVGOptions<T>): SVGEntrypoint<T> => {
+    const normalizedSVGOptions = normalizeSVGOptions(options);
+
+    // generate random id hash for entire svg element
+    const svgId = getNextHash();
 
     // args: [directives[], options?, directives[], options?, ...]
     return (...args) => {
         const pairs = normalizeEntrypointArgs(args);
 
-        const resolvedPairs = pairs.map(([directivesInput, pathOptions]) => {
+        const resolvedPaths = pairs.map(([directivesInput, pathOptions]) => {
             const pathOpts = pathOptions ? pathOptions : {} as PathOptions<any>;
             const normalizedPathOpts = normalizePathOptions(pathOpts);
             const resolvedDirectives: DrawDirective<any>[] = [];
             
             for (const directive of directivesInput) {
                 if (typeof directive === 'function') { //Supplier
-                    resolvedDirectives.push(directive(normalizedPathOpts.resources));
+                    resolvedDirectives.push(directive(normalizedSVGOptions.defs));
                 } else {
                     resolvedDirectives.push(directive);
                 }
@@ -33,24 +37,27 @@ const SVG0 = (options?: SVGOptions): SVGEntrypoint => {
             for (const modifier of Array.isArray(normalizedPathOpts.modifiers) ? normalizedPathOpts.modifiers : [normalizedPathOpts.modifiers]) {
                 modifiedDirectives = modifier(modifiedDirectives);
             }
+
+            const pathID = getNextHash();
             
-            return [modifiedDirectives, normalizedPathOpts.attributes] as [DrawDirective<any>[], JSX.PathSVGAttributes<SVGPathElement>];
+            return new Path(pathID, modifiedDirectives, normalizedPathOpts.htmlAttributes);
         });
 
         const bounds = getBounds(
-            resolvedPairs
-                .flatMap(pair => pair[0]
-                    .flatMap(dir => dir.getPoints()
+            resolvedPaths
+                .flatMap( path => path.directives
+                    .flatMap( dir => dir.getPoints()
                 )
             )
         );
 
         return (
-            <svg viewBox={computeNormalizedViewBox(bounds)} {...normalized.attributes} >
-                {resolvedPairs.map((pair, idx) => (
-                    <path d={directivesToPath(pair[0])} {...pair[1]} />
+            <svg id={`svg-${svgId}`} viewBox={computeNormalizedViewBox(bounds)} {...normalizedSVGOptions.htmlAttributes} >
+                {appendDefs( normalizedSVGOptions.defs, svgId )}
+                {resolvedPaths.map((path, idx) => (
+                    <path d={directivesToPath(path.directives)} {...resolveReferencedDefs(svgId, path.attributes)} />
                 ))}
-                {normalized.children}
+                {normalizedSVGOptions.children}
             </svg>
         );
     };
@@ -61,7 +68,16 @@ const SVG0 = (options?: SVGOptions): SVGEntrypoint => {
  */
 export const SVG = SVG0;
 
-export class Path {
+const appendDefs = <T extends PredefinedResources>(defs: T, svgId: string): JSX.Element | null => {
+    if (!defs) return null;
+
+    return (
+        <defs>
+        </defs>
+    );
+}
+
+export class Path<T extends PredefinedResources = {}> {
 
     public static Symbol = _DirectiveSymbols;
 
@@ -110,4 +126,10 @@ export class Path {
     }
     
     public static E = Path.End;
+
+    constructor(
+        public readonly id: string,
+        public readonly directives: DrawDirective<T>[],
+        public readonly attributes: PathOptions<T>['htmlAttributes'] = {}
+    ) {}
 }
