@@ -1,5 +1,5 @@
 import { Component, JSX } from "solid-js";
-import { DrawDirective, vec2, PathBounds, PredefinedResources, PathModifier, uint32, DrawDirectiveSupplier, SVGOptions, PathOptions } from "./types";
+import { DrawDirective, vec2, PathBounds, PredefinedResources, PathModifier, uint32, DrawDirectiveSupplier, SVGOptions, PathOptions, DD2 } from "./types";
 
 /**
  * Extract all points from draw directives for bounds calculation
@@ -56,7 +56,7 @@ export function getBounds(points: vec2<number>[]): PathBounds {
 /**
  * Mirror directives around Y-axis
  */
-export function mirrorDirectivesOnY(directives: DrawDirective[]): DrawDirective[] {
+export function mirrorDirectivesOnY(directives: DD2<any>[]): DD2<any>[] {
     return directives.map(dir => {
         switch (dir.type) {
             case 'M':
@@ -88,7 +88,7 @@ export function mirrorDirectivesOnY(directives: DrawDirective[]): DrawDirective[
 /**
  * Mirror directives around X-axis
  */
-export function mirrorDirectivesX(directives: DrawDirective[]): DrawDirective[] {
+export function mirrorDirectivesX(directives: DD2<any>[]): DD2<any>[] {
     return directives.map(dir => {
         switch (dir.type) {
             case 'M':
@@ -120,23 +120,8 @@ export function mirrorDirectivesX(directives: DrawDirective[]): DrawDirective[] 
 /**
  * Convert directives to SVG path string
  */
-export function directivesToPath(directives: DrawDirective[]): string {
-    return directives.map(dir => {
-        switch (dir.type) {
-            case 'M':
-                return `M ${dir.x} ${dir.y}`;
-            case 'L':
-                return `L ${dir.x} ${dir.y}`;
-            case 'C':
-                return `C ${dir.x1} ${dir.y1}, ${dir.x2} ${dir.y2}, ${dir.x} ${dir.y}`;
-            case 'A':
-                return `A ${dir.rx} ${dir.ry} ${dir.rotation} ${dir.largeArc ? 1 : 0} ${dir.sweep ? 1 : 0} ${dir.x} ${dir.y}`;
-            case 'E':
-                return 'Z';
-            default:
-                return '';
-        }
-    }).join(' ');
+export function directivesToPath(directives: DD2<any>[]): string {
+    return directives.map(dir => dir.toPathString()).join(' ');
 }
 
 /**

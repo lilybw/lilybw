@@ -25,7 +25,7 @@ export default function App() {
       <div class="site-background"></div>
       <h1 class="page-title-aqua-marine">ABSOLUTELY NOT KDA</h1>
       <MenuBar />
-      {SVG([Path.M(0, 0), Path.L(50, 0), Path.L(75, -50)], {
+      {SVG()([Path.M(0, 0), Path.L(50, 0), Path.L(75, -50)], {
         attributes: { 
           color: "red", 
           "stroke-width": 10,

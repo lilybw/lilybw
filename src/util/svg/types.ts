@@ -9,7 +9,7 @@ export type DrawDirective<T extends PredefinedResources = {}> =
 
     // (res: T) => DrawDirective<T>[];
 
-export interface SVGOptions<T extends PredefinedResources = {}> {
+export interface SVGOptions {
     attributes?: JSX.SvgSVGAttributes<SVGSVGElement>;
     children?: JSX.Element;
 }
@@ -23,15 +23,29 @@ export interface PathOptions<T extends PredefinedResources = {}> {
 export type SVGSymbol = keyof typeof Path.Symbol;
 
 export interface DD2<T extends PredefinedResources = {}> {
-    toString(): string;
+    toPathString(): string;
     /* Nearest possible approximation of a point repressentation of the draw directive.
     In case of curves, this should include control points as well. */
     getPoint(): vec2<number>[];
     getSymbol(): SVGSymbol;
 }
 
-class DD2C {
+export class DD2C<T extends PredefinedResources = {}> implements DD2<T> {
+    constructor(private directive: DD2<T>) {
+        
+    }
 
+    toPathString(): string {
+        return this.directive.toPathString();
+    }
+
+    getPoint(): vec2<number>[] {
+        return this.directive.getPoint();
+    }
+
+    getSymbol(): SVGSymbol {
+        return this.directive.getSymbol();
+    }
 }
 
 export type DrawDirectiveSupplier<T extends PredefinedResources = {}> = 
@@ -53,7 +67,7 @@ export interface ReferencableRessource extends Resource { //linearGradient, radi
 export type PredefinedResources = { [key: string]: Resource; }; //Any object containing only Resource types under any name
 
 
-export type PathModifier<T extends PredefinedResources = {}> = (existingDirectives: DrawDirective<T>[]) => DrawDirective<T>[];
+export type PathModifier<T extends PredefinedResources = {}> = (existingDirectives: DD2<T>[]) => DD2<T>[];
 
 export type vec2<T> = [T, T];
 export type vec3<T> = [T, T, T];

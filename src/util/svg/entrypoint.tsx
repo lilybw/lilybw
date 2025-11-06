@@ -1,9 +1,10 @@
 import { JSX } from "solid-js/jsx-runtime";
-import { PredefinedResources, DrawDirective, SVGOptions, PathModifier, vec2, uint32, DrawDirectiveSupplier, PathOptions } from "./types";
+import { PredefinedResources, DrawDirective, SVGOptions, PathModifier, vec2, uint32, DrawDirectiveSupplier, PathOptions, DD2 } from "./types";
 import { normalizeSVGOptions, getBounds, extractPoints, computeNormalizedViewBox, directivesToPath, mirrorDirectivesX, mirrorDirectivesOnY, normalizePathOptions } from "./svgUtil";
+import { _PathModifiers } from "./modifiers";
 
 /* TEMP */
-type __typeOfDirective<T extends PredefinedResources = {}> = DrawDirective<T>;
+type __typeOfDirective<T extends PredefinedResources = {}> = DD2<T>;
 type SelfOrSupplier<T,K> = T | ((res: K) => T);
 type DirectiveOrSupplier<T extends PredefinedResources = {}> = SelfOrSupplier<__typeOfDirective<T>, T>;
 
@@ -19,7 +20,7 @@ type SVGEntrypoint = <T extends readonly PredefinedResources[]>(
     ...args: FlattenedArgs<T>
 ) => JSX.Element;
 
-const experiment = <T extends PredefinedResources = {}>(options?: SVGOptions): SVGEntrypoint => {
+const SVG0 = <T extends PredefinedResources = {}>(options?: SVGOptions): SVGEntrypoint => {
     const normalized = normalizeSVGOptions(options);
 
     return (...args) => {
@@ -37,7 +38,6 @@ const experiment = <T extends PredefinedResources = {}>(options?: SVGOptions): S
                 
                 pairs.push([current, options]);
                 
-                // Skip the options if we consumed it
                 if (options !== undefined) i++;
             }
         }
@@ -61,7 +61,7 @@ const experiment = <T extends PredefinedResources = {}>(options?: SVGOptions): S
                 modifiedDirectives = modifier(modifiedDirectives);
             }
             
-            return [modifiedDirectives, normalizedPathOpts.attributes] as [DrawDirective<any>[], JSX.PathSVGAttributes<SVGPathElement>];
+            return [modifiedDirectives, normalizedPathOpts.attributes] as [__typeOfDirective<any>[], JSX.PathSVGAttributes<SVGPathElement>];
         });
 
         
@@ -74,27 +74,6 @@ const experiment = <T extends PredefinedResources = {}>(options?: SVGOptions): S
             </svg>
         );
     };
-};
-
-const SVG0 = <T extends PredefinedResources = {}>(
-    path: DrawDirective<T>[], 
-    options?: SVGOptions<T>
-): JSX.Element => {
-    const { modifiers, attributes } = normalizeSVGOptions(options);
-
-    let computedPath = path;
-    for (const modifier of Array.isArray(modifiers) ? modifiers : [modifiers]) {
-        computedPath = modifier(computedPath);
-    }
-    
-    // Compute bounds
-    const bounds = getBounds(extractPoints(computedPath));
-    
-    return (
-        <svg viewBox={computeNormalizedViewBox(bounds)} {...attributes}>
-            <path d={directivesToPath(computedPath)} fill="none" />
-        </svg>
-    );
 };
 /**
  * Simple utility taking a path and computing the viewbox so that the path is centered within it. 
@@ -117,70 +96,18 @@ export class Path {
         End: "E"
     } as const;
 
-    public static Modifier = {
+    public static Modifier = _PathModifiers;
 
-        Mirror: {
-            X: (): PathModifier => {
-                return (existingDirectives: DrawDirective[]) => {
-                    return [...existingDirectives, ...mirrorDirectivesX(existingDirectives)]
-                }
-            },
-            Y: (): PathModifier => {
-                return (existingDirectives: DrawDirective[]) => {
-                    return [...existingDirectives, ...mirrorDirectivesOnY(existingDirectives)]
-                }
-            }
-        },
-
-        Array: (direction: vec2<number>, spacing: number, count: uint32) => {
-            return (existingDirectives: DrawDirective[]) => {
-                const newDirectives: DrawDirective[] = [];
-                for (let i = 0; i < count; i++) {
-                    const offsetX = direction[0] * spacing * i;
-                    const offsetY = direction[1] * spacing * i;
-                    for (const dir of existingDirectives) {
-                        switch (dir.type) {
-                            case 'M':
-                                newDirectives.push({ type: 'M', x: dir.x + offsetX, y: dir.y + offsetY });
-                                break;
-                            case 'L':
-                                newDirectives.push({ type: 'L', x: dir.x + offsetX, y: dir.y + offsetY });
-                                break;
-                            case 'C':
-                                newDirectives.push({
-                                    type: 'C',
-                                    x1: dir.x1 + offsetX, y1: dir.y1 + offsetY,
-                                    x2: dir.x2 + offsetX, y2: dir.y2 + offsetY,
-                                    x: dir.x + offsetX, y: dir.y + offsetY
-                                });
-                                break;
-                            case 'A':
-                                newDirectives.push({
-                                    type: 'A',
-                                    rx: dir.rx, ry: dir.ry,
-                                    rotation: dir.rotation,
-                                    largeArc: dir.largeArc,
-                                    sweep: dir.sweep,
-                                    x: dir.x + offsetX, y: dir.y + offsetY
-                                });
-                                break;
-                            case 'E':
-                                newDirectives.push({ type: 'E' });
-                        }
-                    }
-                }
-                return newDirectives;
-            }
-        }
-
-    } as const;
-
-    private static Vec2Directive<T extends PredefinedResources = {}>(symbol: keyof typeof Path.Symbol, vec: vec2<number>): DrawDirectiveSupplier<T> {
-        return undefined as any;
+    private static Vec2Directive<T extends PredefinedResources = {}>(symbol: keyof typeof Path.Symbol, vec: vec2<number>): DD2<T> {
+        return {
+            toPathString: () => `${symbol} ${vec[0]} ${vec[1]}`,
+            getPoint: () => [vec],
+            getSymbol: () => symbol
+        } as DD2<T>;
     }
 
-    public static LineTo = (x: number, y: number): DrawDirective => {
-        return { type: 'L', x, y };
+    public static LineTo = (x: number, y: number): DD2<any> => {
+        return Path.Vec2Directive('L', [x, y]);
     }
     
     public static L = Path.LineTo;
@@ -189,8 +116,12 @@ export class Path {
         x1: number, y1: number, 
         x2: number, y2: number, 
         x: number, y: number
-    ): DrawDirective => {
-        return { type: 'C', x1, y1, x2, y2, x, y };
+    ): DD2<any> => {
+        return {
+            toPathString: () => `C ${x1} ${y1}, ${x2} ${y2}, ${x} ${y}`,
+            getPoint: () => [[x1, y1], [x2, y2], [x, y]],
+            getSymbol: () => Path.Symbol.CurveTo
+        };
     }
     
     public static C = Path.Curve;
@@ -201,20 +132,28 @@ export class Path {
         largeArc: boolean, 
         sweep: boolean, 
         x: number, y: number
-    ): DrawDirective => {
-        return { type: 'A', rx, ry, rotation, largeArc, sweep, x, y };
+    ): DD2<any> => {
+        return {
+            toPathString: () => `A ${rx} ${ry} ${rotation} ${largeArc} ${sweep} ${x} ${y}`,
+            getPoint: () => [[x, y]],
+            getSymbol: () => Path.Symbol.ArcTo
+        };
     }
     
     public static A = Path.ArcTo;
-    
-    public static MoveTo = (x: number, y: number): DrawDirective => {
-        return { type: 'M', x, y };
+
+    public static MoveTo = (x: number, y: number): DD2<any> => {
+        return Path.Vec2Directive(Path.Symbol.MoveTo, [x, y]);
     }
     
     public static M = Path.MoveTo;
     
-    public static End = (): DrawDirective => {
-        return { type: 'E' };
+    public static End = (): DD2<any> => {
+        return {
+            toPathString: () => 'E',
+            getPoint: () => [],
+            getSymbol: () => Path.Symbol.End
+        };
     }
     
     public static E = Path.End;
