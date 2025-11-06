@@ -7,7 +7,7 @@ export const _DirectiveSymbols: { [key: string]: string } = {
         CurveToRel: "c",
         ArcTo: "A",
         ArcToRel: "a",
-        End: "E"
+        End: "Z"
     } as const;
 
 export type DirectiveSymbol = keyof typeof _DirectiveSymbols;

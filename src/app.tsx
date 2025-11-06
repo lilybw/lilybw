@@ -19,24 +19,22 @@ export default function App() {
     })
   })
 
-
   return (
     <main>
       <div class="site-background"></div>
       <h1 class="page-title-aqua-marine">ABSOLUTELY NOT KDA</h1>
       <MenuBar />
-      {SVG()([Path.M(0, 0), Path.L(50, 0), Path.L(75, -50)], {
-        attributes: { 
-          color: "red", 
-          "stroke-width": 10,
-          style: "position: absolute; top: 50%; left: 50%; width: 30%; height: 30%; pointer-events: none;"
-        },
-        modifiers: [
-          //Path.Modifier.Mirror.Y(), 
-          Path.Modifier.Array([5,0], 10, 1)
-        ]
-      })
-      }
+      {SVG({ attributes: { 
+        style: "position: absolute; left: 50%; top: 50%; width: 20%; height: 20%;" 
+      } })(
+        [ Path.M(-20, 0), Path.L(20,0), Path.L(35, 20), Path.L(35, 40) ], 
+        { modifiers: [
+          Path.Modifier.Mirror.Y(),
+          Path.Modifier.Array([1, 0], 10, 5)
+          ],
+           
+        }
+      )}
     </main>
   );
 }

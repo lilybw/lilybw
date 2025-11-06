@@ -1,5 +1,51 @@
 import { Component, JSX } from "solid-js";
-import { vec2, PathBounds, PredefinedResources, PathModifier, uint32, DrawDirectiveSupplier, SVGOptions, PathOptions, DD2 } from "./types";
+import { vec2, PathBounds, PredefinedResources, SVGOptions, PathOptions, DD2, FlattenedArgs, OptionsPathTuple, DirectiveOrSupplier } from "./types";
+import { _DirectiveSymbols } from "./symbol";
+import { Path } from "./entrypoint";
+
+// Pair up the arguments: [directives, options, directives, options, ...]
+// becomes [[directives, options?], [directives, options?], ...]
+export const normalizeEntrypointArgs = (
+    args: (DirectiveOrSupplier<any>[] | PathOptions<any>)[]
+): OptionsPathTuple<any>[] => {
+
+    const pairs: OptionsPathTuple<any>[] = [];
+    
+    for (let i = 0; i < args.length; i++) {
+        const current = args[i];
+        
+        if (Array.isArray(current) && current.length !== 0) {
+            let directives: DirectiveOrSupplier<any>[] = current;
+            
+            // Auto insert M 0 0 if missing
+            const firstDirective = directives[0];
+            if (
+                typeof firstDirective === 'function' 
+                || firstDirective.getSymbol() !== _DirectiveSymbols.MoveTo
+            ) {
+                directives = [Path.MoveTo(0, 0), ...directives];
+            }
+
+            // Auto end if no end
+            const lastDirective = directives[directives.length - 1];   
+            if (
+                typeof lastDirective === 'function' 
+                || lastDirective.getSymbol() !== _DirectiveSymbols.End
+            ) {
+                directives = [...directives, Path.End()];
+            }
+
+            const nextArg = args[i + 1];
+            const options = (nextArg && !Array.isArray(nextArg)) ? nextArg as PathOptions<any> : undefined;
+            
+            pairs.push([directives, options]);
+            
+            if (options !== undefined) i++;
+        }
+    }
+    return pairs;
+}
+
 
 /**
  * Extract all points from draw directives for bounds calculation

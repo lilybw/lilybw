@@ -1,24 +1,11 @@
 import { JSX } from "solid-js/jsx-runtime";
-import { PredefinedResources, SVGOptions, PathModifier, vec2, uint32, DrawDirectiveSupplier, PathOptions, DD2, DD2CVec2, DD2CCurve, DD2CArc, DD2CE } from "./types";
-import { normalizeSVGOptions, getBounds, extractPoints, computeNormalizedViewBox, directivesToPath, normalizePathOptions } from "./svgUtil";
+import { PredefinedResources, SVGOptions, PathModifier, vec2, uint32, DrawDirectiveSupplier, PathOptions, DD2, DD2CVec2, DD2CCurve, DD2CArc, DD2CE, FlattenedArgs, DirectiveOrSupplier } from "./types";
+import { normalizeSVGOptions, getBounds, extractPoints, computeNormalizedViewBox, directivesToPath, normalizePathOptions, normalizeEntrypointArgs } from "./svgUtil";
 import { _PathModifiers } from "./modifiers";
 import { _DirectiveSymbols, DirectiveSymbol } from "./symbol";
 
-/* TEMP */
-type __typeOfDirective<T extends PredefinedResources = {}> = DD2<T>;
-type SelfOrSupplier<T,K> = T | ((res: K) => T);
-type DirectiveOrSupplier<T extends PredefinedResources = {}> = SelfOrSupplier<__typeOfDirective<T>, T>;
-
-type OptionsPathTuple<T extends PredefinedResources = {}> = [DirectiveOrSupplier<T>[], PathOptions<T>?];
-
-// Recursive type that builds: [directives[], options?, directives[], options?, ...]
-type FlattenedArgs<T extends readonly PredefinedResources[]> = 
-    T extends readonly [infer First extends PredefinedResources, ...infer Rest extends readonly PredefinedResources[]]
-        ? [DirectiveOrSupplier<First>[], PathOptions<First>?, ...FlattenedArgs<Rest>]
-        : [];
-
-type SVGEntrypoint = <T extends readonly PredefinedResources[]>(
-    ...args: FlattenedArgs<T>
+type SVGEntrypoint = (
+    ...args: (DirectiveOrSupplier<any>[] | PathOptions<any>)[]
 ) => JSX.Element;
 
 const SVG0 = (options?: SVGOptions): SVGEntrypoint => {
@@ -26,28 +13,12 @@ const SVG0 = (options?: SVGOptions): SVGEntrypoint => {
 
     // args: [directives[], options?, directives[], options?, ...]
     return (...args) => {
-        // Pair up the arguments: [directives, options, directives, options, ...]
-        // becomes [[directives, options?], [directives, options?], ...]
-        const pairs: OptionsPathTuple<any>[] = [];
-        
-        for (let i = 0; i < args.length; i++) {
-            const current = args[i];
-            
-            if (Array.isArray(current)) {
-                // This is a directives array
-                const nextArg = args[i + 1];
-                const options = (nextArg && !Array.isArray(nextArg)) ? nextArg : undefined;
-                
-                pairs.push([current, options]);
-                
-                if (options !== undefined) i++;
-            }
-        }
+        const pairs = normalizeEntrypointArgs(args);
 
         const resolvedPairs = pairs.map(([directivesInput, pathOptions]) => {
             const pathOpts = pathOptions ? pathOptions : {} as PathOptions<any>;
             const normalizedPathOpts = normalizePathOptions(pathOpts);
-            const resolvedDirectives: __typeOfDirective<any>[] = [];
+            const resolvedDirectives: DD2<any>[] = [];
             
             for (const directive of directivesInput) {
                 if (typeof directive === 'function') { //Supplier
@@ -63,12 +34,19 @@ const SVG0 = (options?: SVGOptions): SVGEntrypoint => {
                 modifiedDirectives = modifier(modifiedDirectives);
             }
             
-            return [modifiedDirectives, normalizedPathOpts.attributes] as [__typeOfDirective<any>[], JSX.PathSVGAttributes<SVGPathElement>];
+            return [modifiedDirectives, normalizedPathOpts.attributes] as [DD2<any>[], JSX.PathSVGAttributes<SVGPathElement>];
         });
 
-        
+        const bounds = getBounds(
+            resolvedPairs
+                .flatMap(pair => pair[0]
+                    .flatMap(dir => dir.getPoints()
+                )
+            )
+        );
+
         return (
-            <svg {...normalized.attributes}>
+            <svg viewBox={computeNormalizedViewBox(bounds)} {...normalized.attributes} >
                 {resolvedPairs.map((pair, idx) => (
                     <path d={directivesToPath(pair[0])} {...pair[1]} />
                 ))}

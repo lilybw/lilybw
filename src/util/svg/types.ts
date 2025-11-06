@@ -9,7 +9,7 @@ export interface SVGOptions {
 }
 
 export interface PathOptions<T extends PredefinedResources = {}> {
-    attributes: JSX.PathSVGAttributes<SVGPathElement>;
+    attributes?: JSX.PathSVGAttributes<SVGPathElement>;
     resources?: T;
     modifiers?: PathModifier<T> | PathModifier<T>[];
 };
@@ -94,7 +94,9 @@ export class DD2CArc<T extends PredefinedResources = {}> implements DD2<T> {
         public readonly x: number, 
         public readonly y: number
     ) {}
-    toPathString(): string { return _DirectiveSymbols.ArcTo; }
+    toPathString(): string { 
+        return `${_DirectiveSymbols.ArcTo} ${this.rx} ${this.ry} ${this.rotation} ${this.largeArc ? "1" : "0"} ${this.sweep ? "1" : "0"} ${this.x} ${this.y}`; 
+    }
     getPoints(): vec2<number>[] { return [
         [ this.x, this.y ],
         [ this.x + this.rx, this.y + this.ry ],
@@ -198,3 +200,13 @@ export type vec3<T> = [T, T, T];
 export type int32 = number;
 export type uint32 = number;
 export type float32 = number;
+
+type SelfOrSupplier<T,K> = T | ((res: K) => T);
+export type DirectiveOrSupplier<T extends PredefinedResources = {}> = SelfOrSupplier<DD2<T>, T>;
+export type OptionsPathTuple<T extends PredefinedResources = {}> = [DirectiveOrSupplier<T>[], PathOptions<T>?];
+
+// Recursive type that builds: [directives[], options?, directives[], options?, ...]
+export type FlattenedArgs<T extends readonly PredefinedResources[]> = 
+    T extends readonly [infer First extends PredefinedResources, ...infer Rest extends readonly PredefinedResources[]]
+        ? [DirectiveOrSupplier<First>[], PathOptions<First>?, ...FlattenedArgs<Rest>]
+        : [];
