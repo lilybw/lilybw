@@ -1,33 +1,15 @@
 import { Component, JSX } from "solid-js";
-import { DrawDirective, vec2, PathBounds, PredefinedResources, PathModifier, uint32, DrawDirectiveSupplier, SVGOptions, PathOptions, DD2 } from "./types";
+import { vec2, PathBounds, PredefinedResources, PathModifier, uint32, DrawDirectiveSupplier, SVGOptions, PathOptions, DD2 } from "./types";
 
 /**
  * Extract all points from draw directives for bounds calculation
  */
-export function extractPoints(directives: DrawDirective[]): vec2<number>[] {
+export function extractPoints(directives: DD2[]): vec2<number>[] {
     const points: vec2<number>[] = [];
 
     for (const dir of directives) {
-        switch (dir.type) {
-            case 'M':
-            case 'L':
-                points.push([ dir.x, dir.y ]);
-                break;
-            case 'C':
-                points.push(
-                    [ dir.x1, dir.y1 ],
-                    [ dir.x2, dir.y2 ],
-                    [ dir.x, dir.y ]
-                );
-                break;
-            case 'A':
-                points.push([ dir.x, dir.y ]);
-                // For arcs, we approximate by including the radii as potential bounds
-                points.push(
-                    [ dir.x + dir.rx, dir.y + dir.ry ],
-                    [ dir.x - dir.rx, dir.y - dir.ry ]
-                );
-                break;
+        for (const point of dir.getPoints()) {
+            points.push(point);
         }
     }
     
@@ -53,68 +35,27 @@ export function getBounds(points: vec2<number>[]): PathBounds {
     );
 }
 
-/**
- * Mirror directives around Y-axis
- */
-export function mirrorDirectivesOnY(directives: DD2<any>[]): DD2<any>[] {
-    return directives.map(dir => {
-        switch (dir.type) {
-            case 'M':
-                return { type: 'M', x: -dir.x, y: dir.y };
-            case 'L':
-                return { type: 'L', x: -dir.x, y: dir.y };
-            case 'C':
-                return {
-                    type: 'C',
-                    x1: -dir.x1, y1: dir.y1,
-                    x2: -dir.x2, y2: dir.y2,
-                    x: -dir.x, y: dir.y
-                };
-            case 'A':
-                return {
-                    type: 'A',
-                    rx: dir.rx, ry: dir.ry,
-                    rotation: -dir.rotation,
-                    largeArc: dir.largeArc,
-                    sweep: !dir.sweep, // Flip sweep for mirroring
-                    x: -dir.x, y: dir.y
-                };
-            case 'E':
-                return { type: 'E' };
-        }
-    });
-}
-
-/**
- * Mirror directives around X-axis
- */
-export function mirrorDirectivesX(directives: DD2<any>[]): DD2<any>[] {
-    return directives.map(dir => {
-        switch (dir.type) {
-            case 'M':
-                return { type: 'M', x: dir.x, y: -dir.y };
-            case 'L':
-                return { type: 'L', x: dir.x, y: -dir.y };
-            case 'C':
-                return {
-                    type: 'C',
-                    x1: dir.x1, y1: -dir.y1,
-                    x2: dir.x2, y2: -dir.y2,
-                    x: dir.x, y: -dir.y
-                };
-            case 'A':
-                return {
-                    type: 'A',
-                    rx: dir.rx, ry: dir.ry,
-                    rotation: -dir.rotation,
-                    largeArc: dir.largeArc,
-                    sweep: !dir.sweep, // Flip sweep for mirroring
-                    x: dir.x, y: -dir.y
-                };
-            case 'E':
-                return { type: 'E' };
-        }
-    });
+export function mirrorCustomVec2(
+  point: vec2<number>,
+  axisOffset: vec2<number>,
+  axisAngle: number // in radians
+): vec2<number> {
+  const translatedX = point[0] - axisOffset[0];
+  const translatedY = point[1] - axisOffset[1];
+  
+  const cos = Math.cos(-axisAngle);
+  const sin = Math.sin(-axisAngle);
+  const rotatedX = translatedX * cos - translatedY * sin;
+  const rotatedY = translatedX * sin + translatedY * cos;
+  
+  const mirroredY = -rotatedY;
+  
+  const cos2 = Math.cos(axisAngle);
+  const sin2 = Math.sin(axisAngle);
+  const unrotatedX = rotatedX * cos2 - mirroredY * sin2;
+  const unrotatedY = rotatedX * sin2 + mirroredY * cos2;
+  
+  return [ unrotatedX + axisOffset[0], unrotatedY + axisOffset[1]];
 }
 
 /**

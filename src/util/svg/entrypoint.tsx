@@ -1,7 +1,8 @@
 import { JSX } from "solid-js/jsx-runtime";
-import { PredefinedResources, DrawDirective, SVGOptions, PathModifier, vec2, uint32, DrawDirectiveSupplier, PathOptions, DD2 } from "./types";
-import { normalizeSVGOptions, getBounds, extractPoints, computeNormalizedViewBox, directivesToPath, mirrorDirectivesX, mirrorDirectivesOnY, normalizePathOptions } from "./svgUtil";
+import { PredefinedResources, SVGOptions, PathModifier, vec2, uint32, DrawDirectiveSupplier, PathOptions, DD2, DD2CVec2, DD2CCurve, DD2CArc, DD2CE } from "./types";
+import { normalizeSVGOptions, getBounds, extractPoints, computeNormalizedViewBox, directivesToPath, normalizePathOptions } from "./svgUtil";
 import { _PathModifiers } from "./modifiers";
+import { _DirectiveSymbols, DirectiveSymbol } from "./symbol";
 
 /* TEMP */
 type __typeOfDirective<T extends PredefinedResources = {}> = DD2<T>;
@@ -20,9 +21,10 @@ type SVGEntrypoint = <T extends readonly PredefinedResources[]>(
     ...args: FlattenedArgs<T>
 ) => JSX.Element;
 
-const SVG0 = <T extends PredefinedResources = {}>(options?: SVGOptions): SVGEntrypoint => {
+const SVG0 = (options?: SVGOptions): SVGEntrypoint => {
     const normalized = normalizeSVGOptions(options);
 
+    // args: [directives[], options?, directives[], options?, ...]
     return (...args) => {
         // Pair up the arguments: [directives, options, directives, options, ...]
         // becomes [[directives, options?], [directives, options?], ...]
@@ -81,29 +83,14 @@ const SVG0 = <T extends PredefinedResources = {}>(options?: SVGOptions): SVGEntr
  */
 export const SVG = SVG0;
 
-
 export class Path {
 
-    public static Symbol: { [key: string]: string } = {
-        MoveTo: "M",
-        MoveToRel: "m",
-        LineTo: "L",
-        LineToRel: "l",
-        CurveTo: "C",
-        CurveToRel: "c",
-        ArcTo: "A",
-        ArcToRel: "a",
-        End: "E"
-    } as const;
+    public static Symbol = _DirectiveSymbols;
 
     public static Modifier = _PathModifiers;
 
-    private static Vec2Directive<T extends PredefinedResources = {}>(symbol: keyof typeof Path.Symbol, vec: vec2<number>): DD2<T> {
-        return {
-            toPathString: () => `${symbol} ${vec[0]} ${vec[1]}`,
-            getPoint: () => [vec],
-            getSymbol: () => symbol
-        } as DD2<T>;
+    private static Vec2Directive<T extends PredefinedResources = {}>(symbol: DirectiveSymbol, vec: vec2<number>): DD2<T> {
+        return new DD2CVec2(symbol, vec);
     }
 
     public static LineTo = (x: number, y: number): DD2<any> => {
@@ -117,11 +104,7 @@ export class Path {
         x2: number, y2: number, 
         x: number, y: number
     ): DD2<any> => {
-        return {
-            toPathString: () => `C ${x1} ${y1}, ${x2} ${y2}, ${x} ${y}`,
-            getPoint: () => [[x1, y1], [x2, y2], [x, y]],
-            getSymbol: () => Path.Symbol.CurveTo
-        };
+        return new DD2CCurve(x1, y1, x2, y2, x, y);
     }
     
     public static C = Path.Curve;
@@ -133,11 +116,7 @@ export class Path {
         sweep: boolean, 
         x: number, y: number
     ): DD2<any> => {
-        return {
-            toPathString: () => `A ${rx} ${ry} ${rotation} ${largeArc} ${sweep} ${x} ${y}`,
-            getPoint: () => [[x, y]],
-            getSymbol: () => Path.Symbol.ArcTo
-        };
+        return new DD2CArc(rx, ry, rotation, largeArc, sweep, x, y);
     }
     
     public static A = Path.ArcTo;
@@ -149,11 +128,7 @@ export class Path {
     public static M = Path.MoveTo;
     
     public static End = (): DD2<any> => {
-        return {
-            toPathString: () => 'E',
-            getPoint: () => [],
-            getSymbol: () => Path.Symbol.End
-        };
+        return new DD2CE();
     }
     
     public static E = Path.End;
