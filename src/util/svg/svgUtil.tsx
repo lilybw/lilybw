@@ -1,5 +1,5 @@
 import { Component, JSX } from "solid-js";
-import { vec2, PathBounds, PredefinedResources, SVGOptions, PathOptions, DD2, FlattenedArgs, OptionsPathTuple, DirectiveOrSupplier } from "./types";
+import { vec2, PathBounds, PredefinedResources, SVGOptions, PathOptions, DrawDirective, FlattenedArgs, OptionsPathTuple, DirectiveOrSupplier } from "./types";
 import { _DirectiveSymbols } from "./symbol";
 import { Path } from "./entrypoint";
 
@@ -50,7 +50,7 @@ export const normalizeEntrypointArgs = (
 /**
  * Extract all points from draw directives for bounds calculation
  */
-export function extractPoints(directives: DD2[]): vec2<number>[] {
+export function extractPoints(directives: DrawDirective[]): vec2<number>[] {
     const points: vec2<number>[] = [];
 
     for (const dir of directives) {
@@ -107,7 +107,7 @@ export function mirrorCustomVec2(
 /**
  * Convert directives to SVG path string
  */
-export function directivesToPath(directives: DD2<any>[]): string {
+export function directivesToPath(directives: DrawDirective<any>[]): string {
     return directives.map(dir => dir.toPathString()).join(' ');
 }
 

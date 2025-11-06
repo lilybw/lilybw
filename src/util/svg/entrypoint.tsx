@@ -1,5 +1,5 @@
 import { JSX } from "solid-js/jsx-runtime";
-import { PredefinedResources, SVGOptions, PathModifier, vec2, uint32, DrawDirectiveSupplier, PathOptions, DD2, DD2CVec2, DD2CCurve, DD2CArc, DD2CE, FlattenedArgs, DirectiveOrSupplier } from "./types";
+import { PredefinedResources, SVGOptions, PathModifier, vec2, uint32, DrawDirectiveSupplier, PathOptions, DrawDirective, DrawDirectiveVec2, DrawDirectiveCurve, DrawDirectiveArc, DDEndOfPath, FlattenedArgs, DirectiveOrSupplier } from "./types";
 import { normalizeSVGOptions, getBounds, extractPoints, computeNormalizedViewBox, directivesToPath, normalizePathOptions, normalizeEntrypointArgs } from "./svgUtil";
 import { _PathModifiers } from "./modifiers";
 import { _DirectiveSymbols, DirectiveSymbol } from "./symbol";
@@ -18,7 +18,7 @@ const SVG0 = (options?: SVGOptions): SVGEntrypoint => {
         const resolvedPairs = pairs.map(([directivesInput, pathOptions]) => {
             const pathOpts = pathOptions ? pathOptions : {} as PathOptions<any>;
             const normalizedPathOpts = normalizePathOptions(pathOpts);
-            const resolvedDirectives: DD2<any>[] = [];
+            const resolvedDirectives: DrawDirective<any>[] = [];
             
             for (const directive of directivesInput) {
                 if (typeof directive === 'function') { //Supplier
@@ -34,7 +34,7 @@ const SVG0 = (options?: SVGOptions): SVGEntrypoint => {
                 modifiedDirectives = modifier(modifiedDirectives);
             }
             
-            return [modifiedDirectives, normalizedPathOpts.attributes] as [DD2<any>[], JSX.PathSVGAttributes<SVGPathElement>];
+            return [modifiedDirectives, normalizedPathOpts.attributes] as [DrawDirective<any>[], JSX.PathSVGAttributes<SVGPathElement>];
         });
 
         const bounds = getBounds(
@@ -67,11 +67,11 @@ export class Path {
 
     public static Modifier = _PathModifiers;
 
-    private static Vec2Directive<T extends PredefinedResources = {}>(symbol: DirectiveSymbol, vec: vec2<number>): DD2<T> {
-        return new DD2CVec2(symbol, vec);
+    private static Vec2Directive<T extends PredefinedResources = {}>(symbol: DirectiveSymbol, vec: vec2<number>): DrawDirective<T> {
+        return new DrawDirectiveVec2(symbol, vec);
     }
 
-    public static LineTo = (x: number, y: number): DD2<any> => {
+    public static LineTo = (x: number, y: number): DrawDirective<any> => {
         return Path.Vec2Directive('L', [x, y]);
     }
     
@@ -81,8 +81,8 @@ export class Path {
         x1: number, y1: number, 
         x2: number, y2: number, 
         x: number, y: number
-    ): DD2<any> => {
-        return new DD2CCurve(x1, y1, x2, y2, x, y);
+    ): DrawDirective<any> => {
+        return new DrawDirectiveCurve(x1, y1, x2, y2, x, y);
     }
     
     public static C = Path.Curve;
@@ -93,20 +93,20 @@ export class Path {
         largeArc: boolean, 
         sweep: boolean, 
         x: number, y: number
-    ): DD2<any> => {
-        return new DD2CArc(rx, ry, rotation, largeArc, sweep, x, y);
+    ): DrawDirective<any> => {
+        return new DrawDirectiveArc(rx, ry, rotation, largeArc, sweep, x, y);
     }
     
     public static A = Path.ArcTo;
 
-    public static MoveTo = (x: number, y: number): DD2<any> => {
+    public static MoveTo = (x: number, y: number): DrawDirective<any> => {
         return Path.Vec2Directive(Path.Symbol.MoveTo, [x, y]);
     }
     
     public static M = Path.MoveTo;
     
-    public static End = (): DD2<any> => {
-        return new DD2CE();
+    public static End = (): DrawDirective<any> => {
+        return new DDEndOfPath();
     }
     
     public static E = Path.End;

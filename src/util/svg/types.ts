@@ -14,31 +14,31 @@ export interface PathOptions<T extends PredefinedResources = {}> {
     modifiers?: PathModifier<T> | PathModifier<T>[];
 };
 
-export interface DD2<T extends PredefinedResources = {}> {
+export interface DrawDirective<T extends PredefinedResources = {}> {
     toPathString(): string;
     /* Nearest possible approximation of a point repressentation of the draw directive.
     In case of curves, this should include control points as well. */
     getPoints(): vec2<number>[];
     getSymbol(): DirectiveSymbol;
-    getMirroredOnX(): DD2<T>;
-    getMirroredOnY(): DD2<T>;
-    getMirroredCustom(axisOffset: vec2<number>, angleRad: number): DD2<T>; 
-    applyConstantOffset(offset: vec2<number>): DD2<T>; // Add this
+    getMirroredOnX(): DrawDirective<T>;
+    getMirroredOnY(): DrawDirective<T>;
+    getMirroredCustom(axisOffset: vec2<number>, angleRad: number): DrawDirective<T>; 
+    applyConstantOffset(offset: vec2<number>): DrawDirective<T>; // Add this
 }
 
-export class DD2CE<T extends PredefinedResources = {}> implements DD2<T> {
+export class DDEndOfPath<T extends PredefinedResources = {}> implements DrawDirective<T> {
     toPathString(): string { return _DirectiveSymbols.End; }
     getPoints(): vec2<number>[] { return []; }
     getSymbol(): DirectiveSymbol { return _DirectiveSymbols.End; }
-    getMirroredOnX(): DD2CE<T> { return new DD2CE(); }
-    getMirroredOnY(): DD2CE<T> { return new DD2CE(); }
-    getMirroredCustom(axisOffset: vec2<number>, angleRad: number): DD2CE<T> { return new DD2CE() }
-    applyConstantOffset(offset: vec2<number>): DD2CE<T> { 
-        return new DD2CE(); 
+    getMirroredOnX(): DDEndOfPath<T> { return new DDEndOfPath(); }
+    getMirroredOnY(): DDEndOfPath<T> { return new DDEndOfPath(); }
+    getMirroredCustom(axisOffset: vec2<number>, angleRad: number): DDEndOfPath<T> { return new DDEndOfPath() }
+    applyConstantOffset(offset: vec2<number>): DDEndOfPath<T> { 
+        return new DDEndOfPath(); 
     }
 }
 
-export class DD2CCurve<T extends PredefinedResources = {}> implements DD2<T> {
+export class DrawDirectiveCurve<T extends PredefinedResources = {}> implements DrawDirective<T> {
     constructor(
         public readonly x1: number, 
         public readonly y1: number, 
@@ -54,7 +54,7 @@ export class DD2CCurve<T extends PredefinedResources = {}> implements DD2<T> {
         [ this.x, this.y ]
     ]; }
     getSymbol(): DirectiveSymbol { return _DirectiveSymbols.CurveTo; }
-    getMirroredOnX(): DD2CCurve<T> { return new DD2CCurve(
+    getMirroredOnX(): DrawDirectiveCurve<T> { return new DrawDirectiveCurve(
         this.x1, 
         -this.y1,
         this.x2, 
@@ -62,7 +62,7 @@ export class DD2CCurve<T extends PredefinedResources = {}> implements DD2<T> {
         this.x, 
         -this.y
     ); }
-    getMirroredOnY(): DD2CCurve<T> { return new DD2CCurve(
+    getMirroredOnY(): DrawDirectiveCurve<T> { return new DrawDirectiveCurve(
         -this.x1, 
         this.y1,
         -this.x2, 
@@ -70,11 +70,11 @@ export class DD2CCurve<T extends PredefinedResources = {}> implements DD2<T> {
         -this.x, 
         this.y
     ); }
-    getMirroredCustom(axisOffset: vec2<number>, angleRad: number): DD2CCurve<T> { 
+    getMirroredCustom(axisOffset: vec2<number>, angleRad: number): DrawDirectiveCurve<T> { 
         throw new Error("DD2CCurve#getMirroredCustom NOT IMPLIMENTED") 
     }
-    applyConstantOffset(offset: vec2<number>): DD2CCurve<T> { 
-        return new DD2CCurve(
+    applyConstantOffset(offset: vec2<number>): DrawDirectiveCurve<T> { 
+        return new DrawDirectiveCurve(
             this.x1 + offset[0], 
             this.y1 + offset[1],
             this.x2 + offset[0], 
@@ -84,7 +84,7 @@ export class DD2CCurve<T extends PredefinedResources = {}> implements DD2<T> {
         );
     }
 }
-export class DD2CArc<T extends PredefinedResources = {}> implements DD2<T> {
+export class DrawDirectiveArc<T extends PredefinedResources = {}> implements DrawDirective<T> {
     constructor(
         public readonly rx: number,
         public readonly ry: number,
@@ -103,7 +103,7 @@ export class DD2CArc<T extends PredefinedResources = {}> implements DD2<T> {
         [ this.x - this.rx, this.y - this.ry ]
     ]; }
     getSymbol(): DirectiveSymbol { return _DirectiveSymbols.ArcTo; }
-    getMirroredOnX(): DD2CArc<T> { return new DD2CArc(
+    getMirroredOnX(): DrawDirectiveArc<T> { return new DrawDirectiveArc(
         this.rx, 
         this.ry,
         -this.rotation,
@@ -112,7 +112,7 @@ export class DD2CArc<T extends PredefinedResources = {}> implements DD2<T> {
         this.x, 
         -this.y
     ); }
-    getMirroredOnY(): DD2CArc<T> { return new DD2CArc(
+    getMirroredOnY(): DrawDirectiveArc<T> { return new DrawDirectiveArc(
         this.rx, 
         this.ry,
         -this.rotation,
@@ -121,11 +121,11 @@ export class DD2CArc<T extends PredefinedResources = {}> implements DD2<T> {
         -this.x, 
         this.y
     ); }
-    getMirroredCustom(axisOffset: vec2<number>, angleRad: number): DD2CArc<T> {
+    getMirroredCustom(axisOffset: vec2<number>, angleRad: number): DrawDirectiveArc<T> {
         throw new Error("DD2CCurve#getMirroredCustom NOT IMPLIMENTED") 
     }
-    applyConstantOffset(offset: vec2<number>): DD2CArc<T> {
-        return new DD2CArc(
+    applyConstantOffset(offset: vec2<number>): DrawDirectiveArc<T> {
+        return new DrawDirectiveArc(
             this.rx, 
             this.ry,
             this.rotation,
@@ -137,7 +137,7 @@ export class DD2CArc<T extends PredefinedResources = {}> implements DD2<T> {
     }
 }
 
-export class DD2CVec2<T extends PredefinedResources = {}> implements DD2<T> {
+export class DrawDirectiveVec2<T extends PredefinedResources = {}> implements DrawDirective<T> {
     constructor(
         private readonly symbol: DirectiveSymbol,
         private readonly point: vec2<number>,
@@ -155,19 +155,19 @@ export class DD2CVec2<T extends PredefinedResources = {}> implements DD2<T> {
         return this.symbol;
     }
 
-    getMirroredOnX(): DD2CVec2<T> {
-        return new DD2CVec2(this.symbol, [this.point[0], -this.point[1]]);
+    getMirroredOnX(): DrawDirectiveVec2<T> {
+        return new DrawDirectiveVec2(this.symbol, [this.point[0], -this.point[1]]);
     }
 
-    getMirroredOnY(): DD2CVec2<T> {
-        return new DD2CVec2(this.symbol, [-this.point[0], this.point[1]]);
+    getMirroredOnY(): DrawDirectiveVec2<T> {
+        return new DrawDirectiveVec2(this.symbol, [-this.point[0], this.point[1]]);
     }
 
-    getMirroredCustom(axisOffset: vec2<number>, angleRad: number): DD2CVec2<T> {
-        return new DD2CVec2(this.symbol, mirrorCustomVec2(this.point, axisOffset, angleRad))
+    getMirroredCustom(axisOffset: vec2<number>, angleRad: number): DrawDirectiveVec2<T> {
+        return new DrawDirectiveVec2(this.symbol, mirrorCustomVec2(this.point, axisOffset, angleRad))
     }
-    applyConstantOffset(offset: vec2<number>): DD2CVec2<T> {
-        return new DD2CVec2(
+    applyConstantOffset(offset: vec2<number>): DrawDirectiveVec2<T> {
+        return new DrawDirectiveVec2(
             this.symbol, 
             [this.point[0] + offset[0], this.point[1] + offset[1]]
         );
@@ -175,8 +175,8 @@ export class DD2CVec2<T extends PredefinedResources = {}> implements DD2<T> {
 }
 
 export type DrawDirectiveSupplier<T extends PredefinedResources = {}> = 
-    | DD2<T>[]
-    | ((resources: T) => DD2<T>[]);
+    | DrawDirective<T>[]
+    | ((resources: T) => DrawDirective<T>[]);
 
 export interface PathBounds {
     minX: number;
@@ -193,7 +193,7 @@ export interface ReferencableRessource extends Resource { //linearGradient, radi
 export type PredefinedResources = { [key: string]: Resource; }; //Any object containing only Resource types under any name
 
 
-export type PathModifier<T extends PredefinedResources = {}> = (existingDirectives: DD2<T>[]) => DD2<T>[];
+export type PathModifier<T extends PredefinedResources = {}> = (existingDirectives: DrawDirective<T>[]) => DrawDirective<T>[];
 
 export type vec2<T> = [T, T];
 export type vec3<T> = [T, T, T];
@@ -202,7 +202,7 @@ export type uint32 = number;
 export type float32 = number;
 
 type SelfOrSupplier<T,K> = T | ((res: K) => T);
-export type DirectiveOrSupplier<T extends PredefinedResources = {}> = SelfOrSupplier<DD2<T>, T>;
+export type DirectiveOrSupplier<T extends PredefinedResources = {}> = SelfOrSupplier<DrawDirective<T>, T>;
 export type OptionsPathTuple<T extends PredefinedResources = {}> = [DirectiveOrSupplier<T>[], PathOptions<T>?];
 
 // Recursive type that builds: [directives[], options?, directives[], options?, ...]

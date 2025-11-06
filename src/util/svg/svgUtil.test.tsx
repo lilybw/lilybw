@@ -1,7 +1,7 @@
 import { test, expect, suite, describe } from "vitest"
 import { prettyFormat, render } from "@solidjs/testing-library"
 import { Path, SVG } from "./entrypoint";
-import { DD2 } from "./types";
+import { DrawDirective } from "./types";
 
 suite("SVG Util Test Suite", () => {
 
@@ -265,7 +265,7 @@ suite("SVG Util Test Suite", () => {
 
     describe("Edge cases", () => {
         test("handles empty path array", () => {
-            const path: DD2<any>[] = [];
+            const path: DrawDirective<any>[] = [];
             const { container } = render(() => SVG()(path));
             
             const svg = container.querySelector("svg");
