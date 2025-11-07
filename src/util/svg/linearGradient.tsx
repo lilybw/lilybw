@@ -79,20 +79,27 @@ export const parseVarargs = (args: (CSSColorLike | number)[]): GradientStop[] =>
 
 export class LinearGradient implements InternalResource, ReferencableResource {
     private name: string = 'unnamed-linear-gradient';
-    private readonly resolvedDirection: vec4<number>; //As a series of percentages [x1, y1, x2, y2] in 0-100 range
-    private readonly resolvedOptions: LinearGradientOptions;
+    private resolvedDirection: vec4<number> = [0,0,0,100]; 
+    private resolvedOptions: LinearGradientOptions = {};
     private readonly resolvedStops: GradientStop[];
 
     constructor(
-        /** Either as a normalized vector or an angle in degrees */
-        options?: LinearGradientOptions,
         ...stops: (CSSColorLike | number)[]
     ) {
-        options = options ?? {};
-        let { direction } = options;
-        direction = direction ?? 0;
-        this.resolvedOptions = options;
         this.resolvedStops = parseVarargs(stops);
+    }
+
+    getURL(): string {
+        return this.name;
+    }
+
+    setName(name: string): void {
+        this.name = name;
+    }
+
+    options(options: LinearGradientOptions) {
+        let direction = options.direction ?? 0;
+        this.resolvedOptions = options;
 
         if (typeof direction === 'number') {
             const angleRad = direction * (Math.PI / 180);
@@ -115,15 +122,7 @@ export class LinearGradient implements InternalResource, ReferencableResource {
                 50 - direction[1],
             ];
         }
-    }
-    
-
-    getURL(): string {
-        return this.name;
-    }
-
-    setName(name: string): void {
-        this.name = name;
+        return this;
     }
 
     toJSXElement(svgId: string): JSX.Element {

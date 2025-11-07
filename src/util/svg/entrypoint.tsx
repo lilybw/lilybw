@@ -54,7 +54,7 @@ const SVG0 = <T extends PredefinedResources>(options?: SVGOptions<T>): SVGEntryp
         );
 
         return (
-            <svg id={`svg-${svgId}`} viewBox={computeNormalizedViewBox(bounds)} {...normalizedSVGOptions.htmlAttributes} >
+            <svg id={`svg-${svgId}`} viewBox={computeNormalizedViewBox(bounds)} xmlns="http://www.w3.org/2000/svg" {...normalizedSVGOptions.htmlAttributes} >
                 {renderedDefs}
                 {resolvedPaths.map((path, idx) => (
                     <path d={directivesToPath(path.directives)} {...resolveReferencedDefs(svgId, normalizedSVGOptions.defs, path.attributes)} />

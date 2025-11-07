@@ -31,10 +31,10 @@ export default function App() {
         }, 
         defs: {
           testGradient: new LinearGradient(
-            {}, 'black', 'white'
+            'black', 'white'
           ),
           testGradient2: new LinearGradient(
-            {}, 'white', 'black'
+            'white', 'black'
           ),
           hvadSomHelst: null as any
         }
