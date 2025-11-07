@@ -211,6 +211,7 @@ export type vec4<T> = [T, T, T, T];
 export type int32 = number;
 export type uint32 = number;
 export type float32 = number;
+export type CSSColorLike = string;
 
 type SelfOrSupplier<T,K> = T | ((res: K) => T);
 export type DirectiveOrSupplier<T extends PredefinedResources = {}> = SelfOrSupplier<DrawDirective<T>, T>;
