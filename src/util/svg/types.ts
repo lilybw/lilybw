@@ -9,13 +9,15 @@ export interface SVGOptions<T extends PredefinedResources = {}> {
     defs?: T;
 }
 
-export interface ExtendedSVGPathAttributes extends JSX.PathSVGAttributes<SVGPathElement> {
-    // However where any value of a key of JSX.PathSVGAttributes<SVGPathElement> can also be a ReferencableRessource
-    [key: string]: string | ReferencableRessource | undefined;
+/** For any key of T, add R as an accepted type for said key */
+export type ExpandAllValueTypes<T,R> = {
+    [K in keyof T]: T[K] | R;
 }
 
+export type ExtendedSVGPathAttributes = ExpandAllValueTypes<JSX.PathSVGAttributes<SVGPathElement>, ReferencableResource>;
+
 export interface PathOptions<T extends PredefinedResources = {}> {
-    htmlAttributes?: SelfOrSupplier<JSX.PathSVGAttributes<SVGPathElement>, T>;
+    htmlAttributes?: SelfOrSupplier<ExtendedSVGPathAttributes, T>;
     modifiers?: PathModifier<T> | PathModifier<T>[];
 };
 
@@ -195,7 +197,7 @@ export interface InternalResource extends Resource {
     setName(name: string): void;
 }
 export type ResourceSupplier = (/* params tbd */) => Resource; 
-export interface ReferencableRessource extends Resource { //linearGradient, radialGradient, pattern, clipPath, mask
+export interface ReferencableResource extends Resource { //linearGradient, radialGradient, pattern, clipPath, mask
     getURL(): string;
 }
 export type PredefinedResources = { [key: string]: InternalResource; }; //Any object containing only Resource types under any name

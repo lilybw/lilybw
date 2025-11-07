@@ -1,5 +1,5 @@
 import { JSX } from "solid-js/jsx-runtime";
-import { InternalResource, normalizeVector2, ReferencableRessource, vec2, vec4 } from "./types";
+import { InternalResource, normalizeVector2, ReferencableResource, vec2, vec4 } from "./types";
 
 export type GradientStop = [number, string]; //offset percentage 0-100, color string
 export interface LinearGradientOptions {
@@ -8,7 +8,7 @@ export interface LinearGradientOptions {
     attributes?: JSX.LinearGradientSVGAttributes<SVGLinearGradientElement>;
 }
 
-export class LinearGradient implements InternalResource, ReferencableRessource {
+export class LinearGradient implements InternalResource, ReferencableResource {
     private name: string = 'unnamed-linear-gradient';
     private readonly resolvedDirection: vec4<number>; //As a series of percentages [x1, y1, x2, y2] in 0-100 range
     private readonly resolvedOptions: LinearGradientOptions;

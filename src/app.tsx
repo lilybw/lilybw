@@ -40,7 +40,6 @@ export default function App() {
         { modifiers: [
           //Path.Modifier.Array([1, 0], 10, 5)
           ],
-          //@ts-ignore
            htmlAttributes: (defs) => ({
             stroke: defs.testGradient
            })
