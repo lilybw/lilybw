@@ -41,7 +41,8 @@ export default function App() {
           //Path.Modifier.Array([1, 0], 10, 5)
           ],
            htmlAttributes: (defs) => ({
-            stroke: defs.testGradient
+            stroke: defs.testGradient,
+            fill: defs.testGradient
            })
         }
       )}

@@ -20,13 +20,13 @@ export const parseVarargs = (args: (CSSColorLike | number)[]): GradientStop[] =>
 
     for (
         const [index, colorOrPercentage] of 
-        (Object.entries(args) as unknown as [number, string | number][])
+        (Object.entries(args) as unknown as [number, CSSColorLike | number][])
     ) {
-
+        console.log(index, colorOrPercentage)
         if (typeof colorOrPercentage === "number") {
             currentStop[1] = colorOrPercentage < 1 ? colorOrPercentage * 100 : colorOrPercentage;
+       
         } else {
-
             if (currentStopHasColor) {
                 //Advance
                 currentStopHasColor = false;
@@ -38,6 +38,9 @@ export const parseVarargs = (args: (CSSColorLike | number)[]): GradientStop[] =>
             currentStopHasColor = true;
         }
     }
+    if (currentStopHasColor) {
+        tuples.push(currentStop);
+    }
 
     if (tuples.length >= 2 && tuples[tuples.length - 1][1] === -1) {
         //Special case with but 2 stops where theyre expected to end up at 0 and 100.
@@ -46,6 +49,9 @@ export const parseVarargs = (args: (CSSColorLike | number)[]): GradientStop[] =>
         tuples[tuples.length - 1][1] = 100;
     }
 
+    if (tuples.length === 1) {
+        return tuples;
+    }
     let latestStopPercentage = Math.max(tuples[0][1], 0);
     // Skip first for it wont ever have to be interpolated if its percetage missing
     // Also always skip the last one, as that will always be 100 OR whatever the user has set
