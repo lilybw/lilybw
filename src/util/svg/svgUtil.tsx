@@ -135,10 +135,16 @@ export function computeNormalizedViewBox(bounds: PathBounds): string {
 }
 
 export const normalizeSVGOptions = (options?: SVGOptions): Required<SVGOptions> => {
+    const resolvedDefs = options?.defs ?? {};
+    for (const [key, value] of Object.entries((resolvedDefs as PredefinedResources))) {
+        if (!value || value === null) continue;
+        value.setName(key); 
+    }
+
     return {
         htmlAttributes: options?.htmlAttributes ?? {},
         children: options?.children ?? null,
-        defs: options?.defs ?? {} as any   
+        defs: resolvedDefs
     };
 }
 
@@ -151,14 +157,19 @@ export const normalizePathOptions = <T extends PredefinedResources = {}>(options
     };
 }
 
-export const resolveReferencedDefs = <T extends PredefinedResources = {}>(svgID: string, attributes: PathOptions<T>['htmlAttributes']): JSX.PathSVGAttributes<SVGPathElement> => {
+export const resolveReferencedDefs = <T extends PredefinedResources = {}>(svgID: string, defs: T, attributes: PathOptions<T>['htmlAttributes']): JSX.PathSVGAttributes<SVGPathElement> => {
     if (!attributes) { return {}; }
+
+    if (typeof attributes === 'function') {
+        //Resolve supplier if supplier
+        attributes = attributes(defs);
+    }
 
     const resolvedAttributes: JSX.PathSVGAttributes<SVGPathElement> = {};
     for (const [key, value] of Object.entries(attributes)) {
         if (value && typeof value === 'object' && 'getURL' in value && typeof value.getURL === 'function') {
             //@ts-ignore
-            resolvedAttributes[key] = `url(#${svgID}-${value.getURL()})`;
+            resolvedAttributes[key] = `url(#${value.getURL()}-${svgID})`;
         } else {
             //@ts-ignore
             resolvedAttributes[key] = value;

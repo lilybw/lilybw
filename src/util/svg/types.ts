@@ -9,8 +9,13 @@ export interface SVGOptions<T extends PredefinedResources = {}> {
     defs?: T;
 }
 
+export interface ExtendedSVGPathAttributes extends JSX.PathSVGAttributes<SVGPathElement> {
+    // However where any value of a key of JSX.PathSVGAttributes<SVGPathElement> can also be a ReferencableRessource
+    [key: string]: string | ReferencableRessource | undefined;
+}
+
 export interface PathOptions<T extends PredefinedResources = {}> {
-    htmlAttributes?: JSX.PathSVGAttributes<SVGPathElement>;
+    htmlAttributes?: SelfOrSupplier<JSX.PathSVGAttributes<SVGPathElement>, T>;
     modifiers?: PathModifier<T> | PathModifier<T>[];
 };
 
@@ -25,7 +30,6 @@ export interface DrawDirective<T extends PredefinedResources = {}> {
     getMirroredCustom(axisOffset: vec2<number>, angleRad: number): DrawDirective<T>; 
     applyConstantOffset(offset: vec2<number>): DrawDirective<T>; // Add this
 }
-
 export class DDEndOfPath<T extends PredefinedResources = {}> implements DrawDirective<T> {
     toPathString(): string { return _DirectiveSymbols.End; }
     getPoints(): vec2<number>[] { return []; }
@@ -37,7 +41,6 @@ export class DDEndOfPath<T extends PredefinedResources = {}> implements DrawDire
         return new DDEndOfPath(); 
     }
 }
-
 export class DrawDirectiveCurve<T extends PredefinedResources = {}> implements DrawDirective<T> {
     constructor(
         public readonly x1: number, 
@@ -136,7 +139,6 @@ export class DrawDirectiveArc<T extends PredefinedResources = {}> implements Dra
         );
     }
 }
-
 export class DrawDirectiveVec2<T extends PredefinedResources = {}> implements DrawDirective<T> {
     constructor(
         private readonly symbol: DirectiveSymbol,
@@ -185,18 +187,25 @@ export interface PathBounds {
     maxY: number;
 }
 
-export interface Resource {}; 
+export interface Resource {
+    toJSXElement(svgId: string): JSX.Element;
+}; 
+export interface InternalResource extends Resource {
+    /* Only for internal use */
+    setName(name: string): void;
+}
 export type ResourceSupplier = (/* params tbd */) => Resource; 
 export interface ReferencableRessource extends Resource { //linearGradient, radialGradient, pattern, clipPath, mask
     getURL(): string;
 }
-export type PredefinedResources = { [key: string]: Resource; }; //Any object containing only Resource types under any name
+export type PredefinedResources = { [key: string]: InternalResource; }; //Any object containing only Resource types under any name
 
 
 export type PathModifier<T extends PredefinedResources = {}> = (existingDirectives: DrawDirective<T>[]) => DrawDirective<T>[];
 
 export type vec2<T> = [T, T];
 export type vec3<T> = [T, T, T];
+export type vec4<T> = [T, T, T, T];
 export type int32 = number;
 export type uint32 = number;
 export type float32 = number;
@@ -210,3 +219,26 @@ export type FlattenedArgs<T extends readonly PredefinedResources[]> =
     T extends readonly [infer First extends PredefinedResources, ...infer Rest extends readonly PredefinedResources[]]
         ? [DirectiveOrSupplier<First>[], PathOptions<First>?, ...FlattenedArgs<Rest>]
         : [];
+
+export const normalizeVector2 = (vec: vec2<number>): vec2<number> => {
+    const mag = Math.sqrt( Number(vec[0]) * Number(vec[0]) + Number(vec[1]) * Number(vec[1]) );
+    if (mag === 0) {
+        return [0, 0];
+    }
+    return [ vec[0] / mag, vec[1] / mag ];
+}
+export const normalizeVector3 = (vec: vec3<number>): vec3<number> => {
+    const mag = Math.sqrt( Number(vec[0]) * Number(vec[0]) + Number(vec[1]) * Number(vec[1]) + Number(vec[2]) * Number(vec[2]) );
+    if (mag === 0) {
+        return [0, 0, 0];
+    }
+    return [ vec[0] / mag, vec[1] / mag, vec[2] / mag ];
+}
+export const normalizeVector4 = (vec: vec4<number>): vec4<number> => {
+    const mag = Math.sqrt( Number(vec[0]) * Number(vec[0]) + Number(vec[1]) * Number(vec[1]) + Number(vec[2]) * Number(vec[2]) + Number(vec[3]) * Number(vec[3]) );
+    if (mag === 0) {
+        return [0, 0, 0, 0];
+    }
+    return [ vec[0] / mag, vec[1] / mag, vec[2] / mag, vec[3] / mag ];
+}
+

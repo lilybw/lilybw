@@ -1,7 +1,7 @@
 import { JSX } from "solid-js/jsx-runtime";
 import { PredefinedResources, SVGOptions, PathModifier, vec2, uint32, DrawDirectiveSupplier, PathOptions, DrawDirective, DrawDirectiveVec2, DrawDirectiveCurve, DrawDirectiveArc, DDEndOfPath, FlattenedArgs, DirectiveOrSupplier } from "./types";
 import { normalizeSVGOptions, getBounds, extractPoints, computeNormalizedViewBox, directivesToPath, normalizePathOptions, normalizeEntrypointArgs, resolveReferencedDefs } from "./svgUtil";
-import { _PathModifiers } from "./modifiers";
+import { _PathModifiers } from "./pathModifiers";
 import { _DirectiveSymbols, DirectiveSymbol } from "./symbol";
 import { getNextHash } from "../hashUtil";
 
@@ -14,6 +14,8 @@ const SVG0 = <T extends PredefinedResources>(options?: SVGOptions<T>): SVGEntryp
 
     // generate random id hash for entire svg element
     const svgId = getNextHash();
+
+    const renderedDefs = appendDefs( normalizedSVGOptions.defs, svgId );
 
     // args: [directives[], options?, directives[], options?, ...]
     return (...args) => {
@@ -53,9 +55,9 @@ const SVG0 = <T extends PredefinedResources>(options?: SVGOptions<T>): SVGEntryp
 
         return (
             <svg id={`svg-${svgId}`} viewBox={computeNormalizedViewBox(bounds)} {...normalizedSVGOptions.htmlAttributes} >
-                {appendDefs( normalizedSVGOptions.defs, svgId )}
+                {renderedDefs}
                 {resolvedPaths.map((path, idx) => (
-                    <path d={directivesToPath(path.directives)} {...resolveReferencedDefs(svgId, path.attributes)} />
+                    <path d={directivesToPath(path.directives)} {...resolveReferencedDefs(svgId, normalizedSVGOptions.defs, path.attributes)} />
                 ))}
                 {normalizedSVGOptions.children}
             </svg>

@@ -3,6 +3,7 @@ import "./app.css";
 import { CSSProperty } from "./util/animationUtil";
 import { MenuBar } from "./components/MenuBar";
 import { SVG, Path } from "./util/svg/entrypoint";
+import { LinearGradient } from "./util/svg/linearGradient";
 
 export default function App() {
 
@@ -29,14 +30,20 @@ export default function App() {
           style: "position: absolute; left: 50%; top: 50%; width: 20%; height: 20%;"  
         }, 
         defs: {
-          asdklm: "hello world"
+          testGradient: new LinearGradient(
+            [ [0, 'red'], [50, 'blue'], [100, 'green'] ]
+          ),
+          hvadSomHelst: null as any
         }
       })(
         [ Path.M(-20, 0), Path.L(20,0), Path.L(35, -20), Path.L(35, -40) ], 
         { modifiers: [
           //Path.Modifier.Array([1, 0], 10, 5)
           ],
-           
+          //@ts-ignore
+           htmlAttributes: (defs) => ({
+            stroke: defs.testGradient
+           })
         }
       )}
     </main>
