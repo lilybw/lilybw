@@ -75,6 +75,7 @@ const appendDefs = <T extends PredefinedResources>(defs: T, svgId: string): JSX.
 
     return (
         <defs>
+            {Object.values(defs).map(def => def.toJSXElement(svgId))}
         </defs>
     );
 }

@@ -135,19 +135,21 @@ export function computeNormalizedViewBox(bounds: PathBounds): string {
 }
 
 export const normalizeSVGOptions = (options?: SVGOptions): Required<SVGOptions> => {
-    const resolvedDefs = options?.defs ?? {};
-    
+    const cleanedDefs: PredefinedResources = {};
     for (
-        const [key, value] of Object.entries((resolvedDefs as PredefinedResources))
+        const [key, value] of Object.entries(((options?.defs ?? {}) as PredefinedResources))
             .filter(([_, v]) => v !== null && v !== undefined)
     ) {
         value.setName(key); 
+        cleanedDefs[key] = value;
     }
 
+
+    
     return {
         htmlAttributes: options?.htmlAttributes ?? {},
         children: options?.children ?? null,
-        defs: resolvedDefs
+        defs: cleanedDefs
     };
 }
 

@@ -22,7 +22,6 @@ export const parseVarargs = (args: (CSSColorLike | number)[]): GradientStop[] =>
         const [index, colorOrPercentage] of 
         (Object.entries(args) as unknown as [number, CSSColorLike | number][])
     ) {
-        console.log(index, colorOrPercentage)
         if (typeof colorOrPercentage === "number") {
             currentStop[1] = colorOrPercentage < 1 ? colorOrPercentage * 100 : colorOrPercentage;
        
@@ -128,6 +127,7 @@ export class LinearGradient implements InternalResource, ReferencableResource {
     }
 
     toJSXElement(svgId: string): JSX.Element {
+        console.log("Rendering to str")
         return (
             <linearGradient id={`${this.name}-${svgId}`}
                 x1={`${this.resolvedDirection[0]}%`} 
