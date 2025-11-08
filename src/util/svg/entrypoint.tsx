@@ -6,7 +6,7 @@ import { _DirectiveSymbols, DirectiveSymbol } from "./symbol";
 import { getNextHash } from "../hashUtil";
 
 type SVGEntrypoint<T extends PredefinedResources = {}> = (
-    ...args: (DirectiveOrSupplier<T>[] | PathOptions<T>)[]
+    ...args: ((DirectiveOrSupplier<T> | DirectiveOrSupplier<T>[])[] | PathOptions<T>)[]
 ) => JSX.Element;
 
 const SVG0 = <T extends PredefinedResources>(options?: SVGOptions<T>): SVGEntrypoint<T> => {
@@ -129,6 +129,26 @@ export class Path<T extends PredefinedResources = {}> {
     }
     
     public static E = Path.End;
+
+    public static Rect = (x: number, y: number, width: number, height: number): DrawDirective<any>[] => {
+        return [
+            Path.M(x, y),
+            Path.L(x + width, y),
+            Path.L(x + width, y + height),
+            Path.L(x, y + height),
+            Path.L(x, y),
+            Path.E()
+        ];
+    }
+
+    public static Ellipse = (cx: number, cy: number, r1: number, r2: number): DrawDirective<any>[] => {
+        return [
+            Path.M(cx, cy - r1),
+            Path.A(r1, r2, 0, true, false, cx + r1, cy),
+            Path.A(r1, r2, 0, true, false, cx, cy - r1),
+            Path.E()
+        ];
+    }
 
     constructor(
         public readonly id: string,

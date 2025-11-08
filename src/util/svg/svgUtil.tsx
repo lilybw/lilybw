@@ -6,7 +6,7 @@ import { Path } from "./entrypoint";
 // Pair up the arguments: [directives, options, directives, options, ...]
 // becomes [[directives, options?], [directives, options?], ...]
 export const normalizeEntrypointArgs = (
-    args: (DirectiveOrSupplier<any>[] | PathOptions<any>)[]
+    args: ((DirectiveOrSupplier<any> | DirectiveOrSupplier<any>[])[] | PathOptions<any>)[]
 ): OptionsPathTuple<any>[] => {
 
     const pairs: OptionsPathTuple<any>[] = [];
@@ -14,8 +14,10 @@ export const normalizeEntrypointArgs = (
     for (let i = 0; i < args.length; i++) {
         const current = args[i];
         
+        // path directives, may be array of arrays or single array
         if (Array.isArray(current) && current.length !== 0) {
-            let directives: DirectiveOrSupplier<any>[] = current;
+            let directives: DirectiveOrSupplier<any>[] 
+                = Array.isArray(current) ? current.flatMap(d => d) : current;
             
             // Auto insert M 0 0 if missing
             const firstDirective = directives[0];

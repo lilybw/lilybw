@@ -27,23 +27,21 @@ export default function App() {
       <MenuBar />
       {SVG({ 
         htmlAttributes: { 
-          style: "position: absolute; left: 50%; top: 50%; width: 50%; height: 50%; transform: translate(-50%, -50%);"  
+          style: "position: absolute; left: 50%; top: 50%; width: 100%; height: 100%; transform: translate(-50%, -50%);"  
         }, 
         defs: {
           testGradient: new LinearGradient(
             'black', 'white'
-          ),
+          ).options({ direction: 45 }),
           testGradient2: new LinearGradient(
             'white', 'black'
-          ),
+          ).options({ direction: 135 }),
           hvadSomHelst: null as any
         }
       })(
-        [ Path.M(-20, 0), Path.L(20,0), Path.L(35, -20), Path.L(35, -40) ], 
+        [ Path.Rect(-20, -20, 20, 40), Path.Rect(10, 0, 20, 40), Path.Ellipse(0, 0, 10, 20) ], 
         { modifiers: [
           //Path.Modifier.Array([1, 0], 10, 5)
-          Path.Modifier.Mirror.Y(),
-          Path.Modifier.Mirror.X()
           ],
            htmlAttributes: (defs) => ({
             stroke: defs.testGradient2,

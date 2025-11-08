@@ -126,7 +126,6 @@ export class LinearGradient implements InternalResource, ReferencableResource {
     }
 
     toJSXElement(svgId: string): JSX.Element {
-        console.log("Rendering to str")
         return (
             <linearGradient id={`${this.name}-${svgId}`}
                 x1={`${this.resolvedDirection[0]}%`} 
