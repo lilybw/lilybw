@@ -9,8 +9,11 @@ type SVGEntrypoint<T extends PredefinedResources = {}> = (
     ...args: ((DirectiveOrSupplier<T> | DirectiveOrSupplier<T>[])[] | PathOptions<T>)[]
 ) => JSX.Element;
 
-const SVG0 = <T extends PredefinedResources>(options?: SVGOptions<T>): SVGEntrypoint<T> => {
-    const normalizedSVGOptions = normalizeSVGOptions(options);
+const SVG0 = <T extends PredefinedResources>(className?: string | SVGOptions<T>, options?: SVGOptions<T>): SVGEntrypoint<T> => {
+    //Resolve what param the options are in if present
+    const normalizedSVGOptions = normalizeSVGOptions(
+        options, className
+    );
 
     // generate random id hash for entire svg element
     const svgId = getNextHash();

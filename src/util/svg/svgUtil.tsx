@@ -136,23 +136,31 @@ export function computeNormalizedViewBox(bounds: PathBounds): string {
     return `${left} ${top} ${maxDim} ${maxDim}`;
 }
 
-export const normalizeSVGOptions = (options?: SVGOptions): Required<SVGOptions> => {
-    const cleanedDefs: PredefinedResources = {};
+export const normalizeSVGOptions = (options?: SVGOptions, className?: string | SVGOptions): Required<SVGOptions> => {
+    if (typeof className === 'object' && className !== null) {
+        options = className;
+    }
+
+    const resolvedDefs: PredefinedResources = {};
     for (
         const [key, value] of Object.entries(((options?.defs ?? {}) as PredefinedResources))
             .filter(([_, v]) => v !== null && v !== undefined)
     ) {
         value.setName(key); 
-        cleanedDefs[key] = value;
+        resolvedDefs[key] = value;
     }
 
+    const resolvedOptions: SVGOptions = {};
+    resolvedOptions.defs = resolvedDefs;
+    resolvedOptions.htmlAttributes = options?.htmlAttributes ?? {};
 
-    
-    return {
-        htmlAttributes: options?.htmlAttributes ?? {},
-        children: options?.children ?? null,
-        defs: cleanedDefs
-    };
+    if (className && typeof className === 'string') {
+        resolvedOptions.htmlAttributes.class = className;
+    }
+
+    resolvedOptions.children = options?.children ?? null;
+
+    return resolvedOptions as Required<SVGOptions>;
 }
 
 export const normalizePathOptions = <T extends PredefinedResources = {}>(options: PathOptions<T>): Required<PathOptions<T>> => {

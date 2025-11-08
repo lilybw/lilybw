@@ -26,7 +26,15 @@ export const _PathModifiers = {
         },
     },
 
-    Array: (direction: vec2<number>, spacing: number, count: uint32) => {
+    Array: (direction: vec2<number> | number, spacing: number, count: uint32) => {
+        if (typeof direction === 'number') {
+            const angleRad = direction * (Math.PI / 180);
+            direction = [
+                Math.cos(angleRad),
+                Math.sin(angleRad)
+            ];
+        }
+        
         return (existingDirectives: DrawDirective<any>[]) => {
             const newDirectives: DrawDirective<any>[] = existingDirectives;
             for (let i = 0; i < count; i++) {

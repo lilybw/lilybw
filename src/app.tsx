@@ -20,36 +20,34 @@ export default function App() {
     })
   })
 
+  const svgDef = SVG("site-svg-background", { 
+    defs: {
+      testGradient: new LinearGradient(
+        'black', 'white'
+      ).options({ direction: 45 }),
+      testGradient2: new LinearGradient(
+        'white', 'black'
+      ).options({ direction: 135 }),
+    },
+    children: (<div class="tenbyten"></div>)
+  });
+
   return (
     <main>
       <div class="site-background"></div>
       <h1 class="page-title-aqua-marine">ABSOLUTELY NOT KDA</h1>
       <MenuBar />
-      {SVG({ 
-        htmlAttributes: { 
-          style: "position: absolute; left: 50%; top: 50%; width: 100%; height: 100%; transform: translate(-50%, -50%);"  
-        }, 
-        defs: {
-          testGradient: new LinearGradient(
-            'black', 'white'
-          ).options({ direction: 45 }),
-          testGradient2: new LinearGradient(
-            'white', 'black'
-          ).options({ direction: 135 }),
-          hvadSomHelst: null as any
-        }
-      })(
+      {svgDef(
         [ Path.Rect(-20, -20, 20, 40), Path.Rect(10, 0, 20, 40), Path.Ellipse(0, 0, 10, 20) ], 
         { modifiers: [
-          //Path.Modifier.Array([1, 0], 10, 5)
+          //Path.Modifier.Array([1, 0], 10, 5),
+          Path.Modifier.Mirror.Y(),
           ],
-           htmlAttributes: (defs) => ({
+          htmlAttributes: (defs) => ({
             stroke: defs.testGradient2,
             fill: defs.testGradient
-           })
-        }
-      )}
-      {SVG()(
+          })
+        },
         [ Path.M(-10, -10), Path.L(10, 10), Path.L(-10, 10), Path.E() ],
         { htmlAttributes: { stroke: "red", fill: "transparent", "stroke-width": 0.5 } }
       )}
