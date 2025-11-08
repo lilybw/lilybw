@@ -83,7 +83,6 @@ const appendDefs = <T extends PredefinedResources>(defs: T, svgId: string): JSX.
 export class Path<T extends PredefinedResources = {}> {
 
     public static Symbol = _DirectiveSymbols;
-
     public static Modifier = _PathModifiers;
 
     private static Vec2Directive<T extends PredefinedResources = {}>(symbol: DirectiveSymbol, vec: vec2<number>): DrawDirective<T> {
@@ -93,9 +92,6 @@ export class Path<T extends PredefinedResources = {}> {
     public static LineTo = (x: number, y: number): DrawDirective<any> => {
         return Path.Vec2Directive('L', [x, y]);
     }
-    
-    public static L = Path.LineTo;
-    
     public static Curve = (
         x1: number, y1: number, 
         x2: number, y2: number, 
@@ -103,9 +99,6 @@ export class Path<T extends PredefinedResources = {}> {
     ): DrawDirective<any> => {
         return new DrawDirectiveCurve(x1, y1, x2, y2, x, y);
     }
-    
-    public static C = Path.Curve;
-    
     public static ArcTo = (
         rx: number, ry: number, 
         rotation: number, 
@@ -115,20 +108,20 @@ export class Path<T extends PredefinedResources = {}> {
     ): DrawDirective<any> => {
         return new DrawDirectiveArc(rx, ry, rotation, largeArc, sweep, x, y);
     }
-    
-    public static A = Path.ArcTo;
-
     public static MoveTo = (x: number, y: number): DrawDirective<any> => {
         return Path.Vec2Directive(Path.Symbol.MoveTo, [x, y]);
     }
-    
-    public static M = Path.MoveTo;
-    
     public static End = (): DrawDirective<any> => {
         return new DDEndOfPath();
     }
-    
+
+    //Aliases
+    public static L = Path.LineTo;
+    public static C = Path.Curve;
+    public static A = Path.ArcTo;
+    public static M = Path.MoveTo;
     public static E = Path.End;
+    public static Z = Path.End;
 
     public static Rect = (x: number, y: number, width: number, height: number): DrawDirective<any>[] => {
         return [
@@ -140,7 +133,6 @@ export class Path<T extends PredefinedResources = {}> {
             Path.E()
         ];
     }
-
     public static Ellipse = (cx: number, cy: number, r1: number, r2: number): DrawDirective<any>[] => {
         return [
             Path.M(cx, cy - r1),

@@ -49,6 +49,10 @@ export default function App() {
            })
         }
       )}
+      {SVG()(
+        [ Path.M(-10, -10), Path.L(10, 10), Path.L(-10, 10), Path.E() ],
+        { htmlAttributes: { stroke: "red", fill: "transparent", "stroke-width": 0.5 } }
+      )}
     </main>
   );
 }

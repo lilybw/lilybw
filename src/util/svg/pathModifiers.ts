@@ -40,6 +40,15 @@ export const _PathModifiers = {
             }
             return newDirectives;
         }
+    },
+
+    Bevel: (): PathModifier => {
+        return (existingDirectives: DrawDirective<any>[]) => {
+            for (const dir of existingDirectives) {
+                
+            }
+            return existingDirectives; //TODO
+        };
     }
     
         
