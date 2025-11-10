@@ -38,7 +38,7 @@ suite("SVG Util Test Suite", () => {
 
         test("Curve creates correct directive", () => {
             const directive = Path.C(1, 2, 3, 4, 5, 6);
-            expect(directive.getSymbol()).toEqual(Path.Symbol.Curve);
+            expect(directive.getSymbol()).toEqual(Path.Symbol.CurveTo);
         })
 
         test("ArcTo creates correct directive", () => {

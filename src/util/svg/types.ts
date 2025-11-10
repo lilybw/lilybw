@@ -13,8 +13,15 @@ export interface SVGOptions<T extends PredefinedResources = {}> {
 export type ExpandAllValueTypes<T,R> = {
     [K in keyof T]: T[K] | R;
 }
+export type ExpandAllValueTypesOfKeys<T, K extends keyof T, R> = {
+    [P in keyof T]: P extends K ? T[P] | R : T[P];
+}
 
-export type ExtendedSVGPathAttributes = ExpandAllValueTypes<JSX.PathSVGAttributes<SVGPathElement>, ReferencableResource>;
+export type ExtendedSVGPathAttributes = ExpandAllValueTypesOfKeys<
+    JSX.PathSVGAttributes<SVGPathElement>,
+    'stroke' | 'fill' | 'clip-path', 
+    ReferencableResource
+>;
 
 export interface PathOptions<T extends PredefinedResources = {}> {
     htmlAttributes?: SelfOrSupplier<ExtendedSVGPathAttributes, T>;
@@ -190,7 +197,7 @@ export interface PathBounds {
 }
 
 export interface Resource {
-    toJSXElement(svgId: string): JSX.Element;
+    toJSXElement(svgId: string, defs?: PredefinedResources): JSX.Element;
 }; 
 export interface InternalResource extends Resource {
     /* Only for internal use */

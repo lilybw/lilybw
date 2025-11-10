@@ -1,7 +1,9 @@
 import { JSX } from "solid-js/jsx-runtime";
 import { CSSColorLike, InternalResource, normalizeVector2, ReferencableResource, vec2, vec4 } from "./types";
+import { formatSVGElementID } from "./svgUtil";
+import { getNextHash } from "../hashUtil";
 
-export type GradientStop = [string, number]; //offset percentage 0-100, color string
+export type GradientStop = [CSSColorLike, number]; //offset percentage 0-100, color string
 export interface LinearGradientOptions {
     /** Either as a normalized vector or an angle in degrees */
     direction?: vec2<number> | number;
@@ -78,7 +80,7 @@ export const parseVarargs = (args: (CSSColorLike | number)[]): GradientStop[] =>
 }
 
 export class LinearGradient implements InternalResource, ReferencableResource {
-    private name: string = 'unnamed-linear-gradient';
+    private name: string = 'unnamed-linear-gradient-' + getNextHash();
     private resolvedDirection: vec4<number> = [0,0,0,100]; 
     private resolvedOptions: LinearGradientOptions = {};
     private readonly resolvedStops: GradientStop[];
@@ -127,7 +129,7 @@ export class LinearGradient implements InternalResource, ReferencableResource {
 
     toJSXElement(svgId: string): JSX.Element {
         return (
-            <linearGradient id={`${this.name}-${svgId}`}
+            <linearGradient id={formatSVGElementID(svgId, this.name)}
                 x1={`${this.resolvedDirection[0]}%`} 
                 y1={`${this.resolvedDirection[1]}%`} 
                 x2={`${this.resolvedDirection[2]}%`} 

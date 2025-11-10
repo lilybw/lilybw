@@ -106,12 +106,6 @@ export function mirrorCustomVec2(
   return [ unrotatedX + axisOffset[0], unrotatedY + axisOffset[1]];
 }
 
-/**
- * Convert directives to SVG path string
- */
-export function directivesToPath(directives: DrawDirective<any>[]): string {
-    return directives.map(dir => dir.toPathString()).join(' ');
-}
 
 /**
  * Normalize bounds to -1,-1 to 1,1 space, maintaining aspect ratio
@@ -172,24 +166,8 @@ export const normalizePathOptions = <T extends PredefinedResources = {}>(options
     };
 }
 
-export const resolveReferencedDefs = <T extends PredefinedResources = {}>(svgID: string, defs: T, attributes: PathOptions<T>['htmlAttributes']): JSX.PathSVGAttributes<SVGPathElement> => {
-    if (!attributes) { return {}; }
 
-    if (typeof attributes === 'function') {
-        //Resolve supplier if supplier
-        attributes = attributes(defs);
-    }
-
-    const resolvedAttributes: JSX.PathSVGAttributes<SVGPathElement> = {};
-    for (const [key, value] of Object.entries(attributes)) {
-        if (value && typeof value === 'object' && 'getURL' in value && typeof value.getURL === 'function') {
-            //@ts-ignore
-            resolvedAttributes[key] = `url(#${value.getURL()}-${svgID})`;
-        } else {
-            //@ts-ignore
-            resolvedAttributes[key] = value;
-        }
-    }
-
-    return resolvedAttributes;
-};
+export const formatSVGElementID = (svgID: string, resourceName: string): string => {
+    //Extracted as a function so I dont forget what I chose
+    return `${resourceName}-${svgID}`;
+}
