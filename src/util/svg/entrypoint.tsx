@@ -1,15 +1,16 @@
 import { JSX } from "solid-js/jsx-runtime";
-import { PredefinedResources, SVGOptions, vec2, PathOptions, DrawDirective, DrawDirectiveVec2, DrawDirectiveCurve, DrawDirectiveArc, DDEndOfPath, DirectiveOrSupplier, InternalResource, ReferencableResource } from "./types";
-import { normalizeSVGOptions, getBounds, computeNormalizedViewBox, normalizePathOptions, normalizeEntrypointArgs, formatSVGElementID } from "./svgUtil";
+import { PredefinedResources, SVGOptions, vec2, PathOptions, DrawDirective, DrawDirectiveVec2, DrawDirectiveCurve, DrawDirectiveArc, DDEndOfPath, DirectiveOrSupplier, InternalResource, ReferencableResource, GuaranteedResources, ComputedResources, UserDefinedResources } from "./types";
+import { normalizeSVGOptions, getBounds, computeNormalizedViewBox, normalizePathOptions, normalizeEntrypointArgs, formatSVGElementID, applyDirectiveModifiers } from "./svgUtil";
 import { _PathModifiers } from "./pathModifiers";
 import { _DirectiveSymbols, DirectiveSymbol } from "./symbol";
 import { getNextHash } from "../hashUtil";
+import { convergeToArray } from "../arrayUtil";
 
-type SVGEntrypoint<T extends PredefinedResources = {}> = (
-    ...args: ((DirectiveOrSupplier<T> | DirectiveOrSupplier<T>[])[] | PathOptions<T>)[]
+type SVGEntrypoint<T extends UserDefinedResources = {}> = (
+    ...args: ((DirectiveOrSupplier<T & ComputedResources> | DirectiveOrSupplier<T & ComputedResources>[])[] | PathOptions<T & ComputedResources>)[]
 ) => JSX.Element;
 
-const SVG0 = <T extends PredefinedResources>(className?: string | SVGOptions<T>, options?: SVGOptions<T>): SVGEntrypoint<T> => {
+const SVG0 = <T extends UserDefinedResources>(className?: string | SVGOptions<T>, options?: SVGOptions<T>): SVGEntrypoint<T> => {
     //Resolve what param the options are in if present
     const normalizedSVGOptions = normalizeSVGOptions(
         options, className
@@ -17,8 +18,6 @@ const SVG0 = <T extends PredefinedResources>(className?: string | SVGOptions<T>,
 
     // generate random id hash for entire svg element
     const svgId = getNextHash();
-
-    const renderedDefs = appendDefs( normalizedSVGOptions.defs, svgId );
 
     // args: [directives[], options?, directives[], options?, ...]
     return (...args) => {
@@ -37,14 +36,14 @@ const SVG0 = <T extends PredefinedResources>(className?: string | SVGOptions<T>,
                 }
             }
 
-            let modifiedDirectives = resolvedDirectives;
-
-            for (const modifier of Array.isArray(normalizedPathOpts.modifiers) ? normalizedPathOpts.modifiers : [normalizedPathOpts.modifiers]) {
-                modifiedDirectives = modifier(modifiedDirectives);
-            }
+            let modifiedDirectives = applyDirectiveModifiers(
+                resolvedDirectives, 
+                convergeToArray(normalizedPathOpts.modifiers)
+            );
             
             return new Path(modifiedDirectives, normalizedPathOpts.htmlAttributes);
         });
+
 
         const bounds = getBounds(
             resolvedPaths
@@ -54,10 +53,17 @@ const SVG0 = <T extends PredefinedResources>(className?: string | SVGOptions<T>,
             )
         );
 
+        const computedDefs: ComputedResources = {
+            dimensions: [bounds.maxX - bounds.minX, bounds.maxY - bounds.minY]
+        }
+        const predefinedResources = {...normalizedSVGOptions.defs, ...computedDefs};
+
+        const renderedDefs = appendDefs( normalizedSVGOptions.defs, predefinedResources, svgId );
+
         return (
             <svg id={`svg-${svgId}`} viewBox={computeNormalizedViewBox(bounds)} xmlns="http://www.w3.org/2000/svg" {...normalizedSVGOptions.htmlAttributes} >
                 {renderedDefs}
-                {resolvedPaths.map((path, idx) => path.toJSXElement(svgId, normalizedSVGOptions.defs))}
+                {resolvedPaths.map((path, idx) => path.toJSXElement(svgId, predefinedResources))}
                 {normalizedSVGOptions.children}
             </svg>
         );
@@ -69,18 +75,20 @@ const SVG0 = <T extends PredefinedResources>(className?: string | SVGOptions<T>,
  */
 export const SVG = SVG0;
 
-const appendDefs = <T extends PredefinedResources>(defs: T, svgId: string): JSX.Element | null => {
+const appendDefs = <T extends UserDefinedResources>(internalRessources: T, defs: T & ComputedResources, svgId: string): JSX.Element | null => {
     if (!defs) return null;
 
-    return ( <defs>{ Object.values(defs).map(def => def.toJSXElement(svgId, defs)) }</defs> );
+    return ( <defs>{ Object.values(internalRessources).map(def => def.toJSXElement(svgId, defs)) }</defs> );
 }
 
-export class Path<T extends PredefinedResources = {}> implements InternalResource, ReferencableResource {
+export class Path<T extends PredefinedResources = GuaranteedResources> 
+    implements InternalResource, ReferencableResource 
+{
 
     public static Symbol = _DirectiveSymbols;
     public static Modifier = _PathModifiers;
 
-    private static Vec2Directive<T extends PredefinedResources = {}>(symbol: DirectiveSymbol, vec: vec2<number>): DrawDirective<T> {
+    private static Vec2Directive<T extends PredefinedResources = GuaranteedResources>(symbol: DirectiveSymbol, vec: vec2<number>): DrawDirective<T> {
         return new DrawDirectiveVec2(symbol, vec);
     }
 
@@ -147,9 +155,13 @@ export class Path<T extends PredefinedResources = {}> implements InternalResourc
         this.name = name;
     }
 
-    toJSXElement(svgId: string, defs?: PredefinedResources): JSX.Element {
+    toJSXElement(svgId: string, defs: PredefinedResources): JSX.Element {
         return (
-            <path id={formatSVGElementID(svgId, this.name)} d={this.toFormattedPath()} {...this.resolveReferencedDefs(svgId, defs as T, this.attributes)} />
+            <path 
+                id={formatSVGElementID(svgId, this.name)} 
+                d={this.toFormattedPath()} 
+                {...this.resolveReferencedDefs(svgId, defs as T, this.attributes)} 
+            />
         );
     }
 
@@ -160,9 +172,10 @@ export class Path<T extends PredefinedResources = {}> implements InternalResourc
     toFormattedPath(): string {
         return this.directives.map(dir => dir.toPathString()).join(' ');
     }
-
     
-    resolveReferencedDefs = <T extends PredefinedResources = {}>(svgID: string, defs: T, attributes: PathOptions<T>['htmlAttributes']): JSX.PathSVGAttributes<SVGPathElement> => {
+    private resolveReferencedDefs = <T extends PredefinedResources = GuaranteedResources>
+        (svgID: string, defs: T, attributes: PathOptions<T>['htmlAttributes']): JSX.PathSVGAttributes<SVGPathElement> => 
+    {
         if (!attributes) { return {}; }
 
         if (typeof attributes === 'function') {

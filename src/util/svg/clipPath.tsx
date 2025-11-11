@@ -1,15 +1,28 @@
 import { JSX } from "solid-js/jsx-runtime";
-import { InternalResource, PredefinedResources, ReferencableResource } from "./types";
+import { DirectiveOrSupplier, DrawDirective, GuaranteedResources, InternalResource, PathOptions, PredefinedResources, ReferencableResource } from "./types";
 import { Path } from "./entrypoint";
-import { formatSVGElementID } from "./svgUtil";
+import { formatSVGElementID, normalizeEntrypointArgs, normalizePathOptions } from "./svgUtil";
 import { getNextHash } from "../hashUtil";
 
-export class ClipPath implements InternalResource, ReferencableResource {
+export class ClipPath<T extends PredefinedResources = GuaranteedResources> 
+implements InternalResource, ReferencableResource {
+
     private name: string = 'unnamed-clip-path-' + getNextHash();
-    
+    private readonly path: Path<T>;
+
     constructor(
-        private readonly path: Path<any>,
-    ) {}
+        directives: (DrawDirective<T> | DrawDirective<T>[])[],
+        options?: PathOptions<T>
+    ) {
+        const resolvedOptions = normalizePathOptions(options);
+        const flattedDirectives = directives.flatMap(e => e);
+
+        this.path = new Path(flattedDirectives, resolvedOptions.htmlAttributes)
+    }
+
+    getPath(): Path<T> {
+        return this.path;
+    }
 
     getURL(): string {
         return this.name;
@@ -19,7 +32,7 @@ export class ClipPath implements InternalResource, ReferencableResource {
         this.name = name;
     }
 
-    toJSXElement(svgId: string, defs?: PredefinedResources): JSX.Element {
+    toJSXElement(svgId: string, defs: PredefinedResources): JSX.Element {
         return (
             <clipPath id={formatSVGElementID(svgId, this.name)}>
                 {this.path.toJSXElement(svgId, defs)}

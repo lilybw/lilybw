@@ -3,7 +3,7 @@ import { Path } from "./entrypoint";
 import { _DirectiveSymbols, DirectiveSymbol } from "./symbol";
 import { mirrorCustomVec2 } from "./svgUtil";
 
-export interface SVGOptions<T extends PredefinedResources = {}> {
+export interface SVGOptions<T extends UserDefinedResources = {}> {
     htmlAttributes?: JSX.SvgSVGAttributes<SVGSVGElement>;
     children?: JSX.Element;
     defs?: T;
@@ -23,12 +23,12 @@ export type ExtendedSVGPathAttributes = ExpandAllValueTypesOfKeys<
     ReferencableResource
 >;
 
-export interface PathOptions<T extends PredefinedResources = {}> {
+export interface PathOptions<T extends PredefinedResources = GuaranteedResources> {
     htmlAttributes?: SelfOrSupplier<ExtendedSVGPathAttributes, T>;
     modifiers?: PathModifier<T> | PathModifier<T>[];
 };
 
-export interface DrawDirective<T extends PredefinedResources = {}> {
+export interface DrawDirective<T extends PredefinedResources = GuaranteedResources> {
     toPathString(): string;
     /* Nearest possible approximation of a point repressentation of the draw directive.
     In case of curves, this should include control points as well. */
@@ -39,7 +39,7 @@ export interface DrawDirective<T extends PredefinedResources = {}> {
     getMirroredCustom(axisOffset: vec2<number>, angleRad: number): DrawDirective<T>; 
     applyConstantOffset(offset: vec2<number>): DrawDirective<T>; // Add this
 }
-export class DDEndOfPath<T extends PredefinedResources = {}> implements DrawDirective<T> {
+export class DDEndOfPath<T extends PredefinedResources = GuaranteedResources> implements DrawDirective<T> {
     toPathString(): string { return _DirectiveSymbols.End; }
     getPoints(): vec2<number>[] { return []; }
     getSymbol(): DirectiveSymbol { return _DirectiveSymbols.End; }
@@ -50,7 +50,7 @@ export class DDEndOfPath<T extends PredefinedResources = {}> implements DrawDire
         return new DDEndOfPath(); 
     }
 }
-export class DrawDirectiveCurve<T extends PredefinedResources = {}> implements DrawDirective<T> {
+export class DrawDirectiveCurve<T extends PredefinedResources = GuaranteedResources> implements DrawDirective<T> {
     constructor(
         public readonly x1: number, 
         public readonly y1: number, 
@@ -96,7 +96,7 @@ export class DrawDirectiveCurve<T extends PredefinedResources = {}> implements D
         );
     }
 }
-export class DrawDirectiveArc<T extends PredefinedResources = {}> implements DrawDirective<T> {
+export class DrawDirectiveArc<T extends PredefinedResources = GuaranteedResources> implements DrawDirective<T> {
     constructor(
         public readonly rx: number,
         public readonly ry: number,
@@ -148,7 +148,7 @@ export class DrawDirectiveArc<T extends PredefinedResources = {}> implements Dra
         );
     }
 }
-export class DrawDirectiveVec2<T extends PredefinedResources = {}> implements DrawDirective<T> {
+export class DrawDirectiveVec2<T extends PredefinedResources = GuaranteedResources> implements DrawDirective<T> {
     constructor(
         private readonly symbol: DirectiveSymbol,
         private readonly point: vec2<number>,
@@ -185,7 +185,7 @@ export class DrawDirectiveVec2<T extends PredefinedResources = {}> implements Dr
     }
 }
 
-export type DrawDirectiveSupplier<T extends PredefinedResources = {}> = 
+export type DrawDirectiveSupplier<T extends PredefinedResources = GuaranteedResources> = 
     | DrawDirective<T>[]
     | ((resources: T) => DrawDirective<T>[]);
 
@@ -197,7 +197,7 @@ export interface PathBounds {
 }
 
 export interface Resource {
-    toJSXElement(svgId: string, defs?: PredefinedResources): JSX.Element;
+    toJSXElement(svgId: string, defs: PredefinedResources): JSX.Element;
 }; 
 export interface InternalResource extends Resource {
     /* Only for internal use */
@@ -207,10 +207,16 @@ export type ResourceSupplier = (/* params tbd */) => Resource;
 export interface ReferencableResource extends Resource { //linearGradient, radialGradient, pattern, clipPath, mask
     getURL(): string;
 }
-export type PredefinedResources = { [key: string]: InternalResource; }; //Any object containing only Resource types under any name
+export type ComputedResources = {
+    dimensions: vec2<number>;
+}
+export type UserDefinedResources = {
+    [key in Exclude<string, keyof ComputedResources>]: InternalResource;
+}
+export type PredefinedResources = UserDefinedResources & ComputedResources;
+export type GuaranteedResources = PredefinedResources & ComputedResources;
 
-
-export type PathModifier<T extends PredefinedResources = {}> = (existingDirectives: DrawDirective<T>[]) => DrawDirective<T>[];
+export type PathModifier<T extends PredefinedResources = GuaranteedResources> = (existingDirectives: DrawDirective<T>[]) => DrawDirective<T>[];
 
 export type vec2<T> = [T, T];
 export type vec3<T> = [T, T, T];
@@ -218,11 +224,11 @@ export type vec4<T> = [T, T, T, T];
 export type int32 = number;
 export type uint32 = number;
 export type float32 = number;
-export type CSSColorLike = string;
+export type CSSColorLike = CSSStyleDeclaration['color'];
 
-type SelfOrSupplier<T,K> = T | ((res: K) => T);
-export type DirectiveOrSupplier<T extends PredefinedResources = {}> = SelfOrSupplier<DrawDirective<T>, T>;
-export type OptionsPathTuple<T extends PredefinedResources = {}> = [DirectiveOrSupplier<T>[], PathOptions<T>?];
+export type SelfOrSupplier<T,K> = T | ((res: K) => T);
+export type DirectiveOrSupplier<T extends PredefinedResources = GuaranteedResources> = SelfOrSupplier<DrawDirective<T>, T>;
+export type OptionsPathTuple<T extends PredefinedResources = GuaranteedResources> = [DirectiveOrSupplier<T>[], PathOptions<T>?];
 
 // Recursive type that builds: [directives[], options?, directives[], options?, ...]
 export type FlattenedArgs<T extends readonly PredefinedResources[]> = 

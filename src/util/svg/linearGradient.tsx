@@ -1,5 +1,5 @@
 import { JSX } from "solid-js/jsx-runtime";
-import { CSSColorLike, InternalResource, normalizeVector2, ReferencableResource, vec2, vec4 } from "./types";
+import { CSSColorLike, InternalResource, normalizeVector2, PredefinedResources, ReferencableResource, vec2, vec4 } from "./types";
 import { formatSVGElementID } from "./svgUtil";
 import { getNextHash } from "../hashUtil";
 
@@ -127,7 +127,7 @@ export class LinearGradient implements InternalResource, ReferencableResource {
         return this;
     }
 
-    toJSXElement(svgId: string): JSX.Element {
+    toJSXElement(svgId: string, defs: PredefinedResources): JSX.Element {
         return (
             <linearGradient id={formatSVGElementID(svgId, this.name)}
                 x1={`${this.resolvedDirection[0]}%`} 

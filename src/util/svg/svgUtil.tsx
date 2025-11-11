@@ -1,7 +1,8 @@
 import { Component, JSX } from "solid-js";
-import { vec2, PathBounds, PredefinedResources, SVGOptions, PathOptions, DrawDirective, FlattenedArgs, OptionsPathTuple, DirectiveOrSupplier } from "./types";
+import { vec2, PathBounds, PredefinedResources, SVGOptions, PathOptions, DrawDirective, FlattenedArgs, OptionsPathTuple, DirectiveOrSupplier, PathModifier, UserDefinedResources, GuaranteedResources } from "./types";
 import { _DirectiveSymbols } from "./symbol";
 import { Path } from "./entrypoint";
+import { convergeToArray } from "../arrayUtil";
 
 // Pair up the arguments: [directives, options, directives, options, ...]
 // becomes [[directives, options?], [directives, options?], ...]
@@ -130,14 +131,16 @@ export function computeNormalizedViewBox(bounds: PathBounds): string {
     return `${left} ${top} ${maxDim} ${maxDim}`;
 }
 
-export const normalizeSVGOptions = (options?: SVGOptions, className?: string | SVGOptions): Required<SVGOptions> => {
+export const normalizeSVGOptions = <T extends UserDefinedResources>
+    (options?: SVGOptions<T>, className?: string | SVGOptions<T>): Required<SVGOptions<T>> => 
+{
     if (typeof className === 'object' && className !== null) {
         options = className;
     }
 
-    const resolvedDefs: PredefinedResources = {};
+    const resolvedDefs: UserDefinedResources = {};
     for (
-        const [key, value] of Object.entries(((options?.defs ?? {}) as PredefinedResources))
+        const [key, value] of Object.entries((options?.defs ?? {}))
             .filter(([_, v]) => v !== null && v !== undefined)
     ) {
         value.setName(key); 
@@ -154,16 +157,25 @@ export const normalizeSVGOptions = (options?: SVGOptions, className?: string | S
 
     resolvedOptions.children = options?.children ?? null;
 
-    return resolvedOptions as Required<SVGOptions>;
+    return resolvedOptions as Required<SVGOptions<T>>;
 }
 
-export const normalizePathOptions = <T extends PredefinedResources = {}>(options: PathOptions<T>): Required<PathOptions<T>> => {
+export const normalizePathOptions = <T extends PredefinedResources = GuaranteedResources>
+    (options?: PathOptions<T>): Required<PathOptions<T>> => 
+{
+    options = options ?? {};
     return {
-        modifiers: options?.modifiers 
-                ? (Array.isArray(options.modifiers) ? options.modifiers : [options.modifiers]) 
-                : [],
-        htmlAttributes: options?.htmlAttributes ?? {},
+        modifiers: convergeToArray(options.modifiers),
+        htmlAttributes: options.htmlAttributes ?? {},
     };
+}
+
+export const applyDirectiveModifiers = (directives: DrawDirective[], modifiers: PathModifier[]) => {
+    let modifiedDirectives = directives;
+    for (const modifier of modifiers) {
+        modifiedDirectives = modifier(modifiedDirectives);
+    }
+    return modifiedDirectives;
 }
 
 
