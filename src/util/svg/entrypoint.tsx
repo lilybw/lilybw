@@ -7,18 +7,24 @@ import { getNextHash } from "../hashUtil";
 import { convergeToArray } from "../arrayUtil";
 
 type SVGEntrypoint<T extends UserDefinedResources = {}> = (
-    ...args: ((DirectiveOrSupplier<T & ComputedResources> | DirectiveOrSupplier<T & ComputedResources>[])[] | PathOptions<T & ComputedResources>)[]
+    ...args: ( 
+        ( 
+            DirectiveOrSupplier<T & ComputedResources> 
+            | DirectiveOrSupplier<T & ComputedResources>[] 
+        )[]
+        | PathOptions<T & ComputedResources>
+    )[]
 ) => JSX.Element;
 
-const SVG0 = <T extends UserDefinedResources>(className?: string | SVGOptions<T>, options?: SVGOptions<T>): SVGEntrypoint<T> => {
+const SVG0 = <T extends UserDefinedResources>(
+    className?: string | SVGOptions<T>, options?: SVGOptions<T>
+): SVGEntrypoint<T> => {
     //Resolve what param the options are in if present
     const normalizedSVGOptions = normalizeSVGOptions(
         options, className
     );
-
     // generate random id hash for entire svg element
     const svgId = getNextHash();
-
     // args: [directives[], options?, directives[], options?, ...]
     return (...args) => {
         const pairs = normalizeEntrypointArgs(args);
