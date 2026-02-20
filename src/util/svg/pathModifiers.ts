@@ -36,7 +36,7 @@ export const _PathModifiers = {
         }
         
         return (existingDirectives: DrawDirective<any>[]) => {
-            const newDirectives: DrawDirective<any>[] = existingDirectives;
+            const newDirectives: DrawDirective<any>[] = [...existingDirectives];
             for (let i = 0; i < count; i++) {
                 const offset: vec2<number> = [
                     direction[0] * spacing * i,

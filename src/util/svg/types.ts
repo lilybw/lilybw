@@ -37,7 +37,7 @@ export interface DrawDirective<T extends PredefinedResources = GuaranteedResourc
     getMirroredOnX(): DrawDirective<T>;
     getMirroredOnY(): DrawDirective<T>;
     getMirroredCustom(axisOffset: vec2<number>, angleRad: number): DrawDirective<T>; 
-    applyConstantOffset(offset: vec2<number>): DrawDirective<T>; // Add this
+    applyConstantOffset(offset: vec2<number>): DrawDirective<T>; 
 }
 export class DDEndOfPath<T extends PredefinedResources = GuaranteedResources> implements DrawDirective<T> {
     toPathString(): string { return _DirectiveSymbols.End; }

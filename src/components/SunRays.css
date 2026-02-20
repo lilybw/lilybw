@@ -1,0 +1,12 @@
+.sun-rays {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+}   
+.sun-ray {
+    position: absolute;
+    width: 400%;
+    height: 400%;
+}

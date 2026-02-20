@@ -53,6 +53,7 @@ body {
   overflow: hidden;
   margin: 0;
   padding: 0;
+  transition: all 0.3s ease;
 }
 
 .site-background {
@@ -60,15 +61,27 @@ body {
   top: 0; 
   left: 0;
 
-  background-image: var(--main-bg-gradient);
+  background: var(--main-bg-gradient);
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
 
   width: 300vw;
   height: 100vh;
+  transition: all 0.3s ease;
 }
-
+.chevy {
+  position: absolute;
+  --size: 10rem;
+  width: var(--size);
+  height: calc(var(--size) * 0.6);
+  margin: 0;
+  padding: 0;
+  right: 0%;
+  bottom: 0;
+  mix-blend-mode: difference;
+  transition: all 0.3s ease;
+}
 .tenbyten{
   position: absolute;
   width: 10vw;
@@ -81,8 +94,7 @@ body {
   width: 100%; 
   height: 100%; 
   transform: translate(-50%, -50%);
-
-
+  transition: all 0.3s ease;
 }
 
 .page-title, .page-title-aqua-marine, .page-title-golden, .page-title-purple, .page-title-oscillating-hue  {
@@ -92,9 +104,15 @@ body {
   -webkit-text-fill-color: transparent;
   color: transparent; /* fallback */
   font-style: bold;
-  font-size: 30vh;
+  --font-size: 20vh;
+  font-size: var(--font-size);
 
   filter: drop-shadow(2px 2px 4px rgba(181, 224, 255, 0.6));
+  transition: all 0.3s ease;
+}
+
+.page-title-reduced {
+  --font-size: 10vh;
 }
 
 .page-title-aqua-marine {
@@ -109,6 +127,21 @@ body {
 
 .page-title-oscillating-hue {
   background-color: hsl(calc(var(--site-elapsed-seconds) * 100), 40%, 50%);
+}
+
+.page-title-position {
+  position: absolute;
+  left: 0;
+  --line-height: 0.8;
+  line-height: var(--line-height);
+  bottom: calc(var(--font-size) * var(--line-height));
+  text-align: left;
+  margin:0;
+  padding: 0;
+}
+.page-title-surname-adjustment {
+  bottom: 0;
+  left: 1.2vh;
 }
 
 
