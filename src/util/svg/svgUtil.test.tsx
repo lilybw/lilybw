@@ -100,7 +100,7 @@ suite("SVG Util Test Suite", () => {
     })
 
     describe("Y-axis mirroring", () => {
-        test("creates but one path - original and mirrored", () => {
+        test("creates but one path - the mirrored", () => {
             const path = [Path.M(10, 20), Path.L(30, 40)];
             const { container } = render(() => SVG()(path));
             
@@ -115,9 +115,9 @@ suite("SVG Util Test Suite", () => {
             const paths = container.querySelectorAll("path");
             const path1 = paths[0].getAttribute("d");
             
-            // Original should have positive X
-            expect(path1).toContain("M 10 20");
-            expect(path1).toContain("L 30 40");
+            // Original shouldnt be present
+            expect(path1).not.toContain("M 10 20");
+            expect(path1).not.toContain("L 30 40");
             
             // Mirrored should have negative X
             expect(path1).toContain("M -10 20");
@@ -131,8 +131,8 @@ suite("SVG Util Test Suite", () => {
             const paths = container.querySelectorAll("path");
             const path1 = paths[0].getAttribute("d");
             
-            // Original curve
-            expect(path1).toContain("C 10 10, 20 20, 30 30");
+            // Original curve should not be present
+            expect(path1).not.toContain("C 10 10, 20 20, 30 30");
             
             // Mirrored curve (negated X coordinates)
             expect(path1).toContain("C -10 10, -20 20, -30 30");

@@ -1,0 +1,13 @@
+.invisible {
+    opacity: 0;
+}
+.break-all {
+  padding:0;
+  position: absolute;
+  margin: 0;
+}
+.fullscreen {
+  width: 100vw;
+  height: 100vh;
+
+}

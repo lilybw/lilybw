@@ -43,7 +43,13 @@ html{
   margin: 0;
   padding: 0;
 }
-
+.page-index-label {
+  width: fit-content;
+  height: fit-content;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+}
 body {
   font-family: Gordita, Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
 
@@ -70,8 +76,11 @@ body {
   height: 100vh;
   transition: all 0.3s ease;
 }
-.chevy {
+.chevy-container {
   position: absolute;
+  display: grid;
+  grid-template-rows: 2;
+  row-gap: 0;
   --size: 10rem;
   width: var(--size);
   height: calc(var(--size) * 0.6);
@@ -81,6 +90,11 @@ body {
   bottom: 0;
   mix-blend-mode: difference;
   transition: all 0.3s ease;
+  filter: contrast(0);
+}
+
+.chevy {
+  height: 10vh;
 }
 .tenbyten{
   position: absolute;

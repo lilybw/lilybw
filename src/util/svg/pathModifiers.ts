@@ -3,25 +3,35 @@ import { PathModifier, DrawDirective, vec2, uint32 } from "./types"
 
 export const _PathModifiers = {
 
+    CopyAnd: (mutator: PathModifier): PathModifier => {
+        return (existingDirectives: DrawDirective<any>[]) => {
+            return [...existingDirectives, ...mutator(existingDirectives)];
+        }
+    },
+
+    NO_OP: (): PathModifier => {
+        return dirs => dirs;
+    },
+
     Mirror: {
         X: (): PathModifier => {
             return (existingDirectives: DrawDirective<any>[]) => {
-                return appendMutatedCopy(existingDirectives, (dir) => dir.getMirroredOnX());
+                return existingDirectives.map(dir => dir.getMirroredOnX());
             }
         },
         Y: (): PathModifier => {
             return (existingDirectives: DrawDirective<any>[]) => {
-                return appendMutatedCopy(existingDirectives, (dir) => dir.getMirroredOnY());
+                return existingDirectives.map((dir) => dir.getMirroredOnY());
             }
         },
         Angle: (angleRad: number): PathModifier => {
             return (existingDirectives: DrawDirective<any>[]) => {
-                return appendMutatedCopy(existingDirectives, (dir) => dir.getMirroredCustom([0,0], angleRad));
+                return existingDirectives.map((dir) => dir.getMirroredCustom([0,0], angleRad));
             }
         },
         Custom: (axisOffset: vec2<number>, angleRad: number): PathModifier => {
             return (existingDirectives: DrawDirective<any>[]) => {
-                return appendMutatedCopy(existingDirectives, (dir) => dir.getMirroredCustom(axisOffset, angleRad));
+                return existingDirectives.map((dir) => dir.getMirroredCustom(axisOffset, angleRad));
             }
         },
     },

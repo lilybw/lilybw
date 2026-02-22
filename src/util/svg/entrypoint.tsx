@@ -4,7 +4,7 @@ import { normalizeSVGOptions, getBounds, computeNormalizedViewBox, normalizePath
 import { _PathModifiers } from "./pathModifiers";
 import { _DirectiveSymbols, DirectiveSymbol } from "./symbol";
 import { getNextHash } from "../hashUtil";
-import { convergeToArray } from "../arrayUtil";
+import { convergeToArray } from "../convergeUtil";
 
 type SVGEntrypoint<T extends UserDefinedResources = {}> = (
     ...args: ( 

@@ -2,7 +2,7 @@ import { Component, JSX } from "solid-js";
 import { vec2, PathBounds, PredefinedResources, SVGOptions, PathOptions, DrawDirective, FlattenedArgs, OptionsPathTuple, DirectiveOrSupplier, PathModifier, UserDefinedResources, GuaranteedResources } from "./types";
 import { _DirectiveSymbols } from "./symbol";
 import { Path } from "./entrypoint";
-import { convergeToArray } from "../arrayUtil";
+import { convergeToArray } from "../convergeUtil";
 
 // Pair up the arguments: [directives, options, directives, options, ...]
 // becomes [[directives, options?], [directives, options?], ...]
