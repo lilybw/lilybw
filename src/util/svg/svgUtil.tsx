@@ -114,21 +114,20 @@ export function mirrorCustomVec2(
 export function computeNormalizedViewBox(bounds: PathBounds): string {
     const width = bounds.maxX - bounds.minX;
     const height = bounds.maxY - bounds.minY;
-    const maxDim = Math.max(width, height);
     
-    if (maxDim === 0) {
-        return '-1 -1 2 2';
+    if (width === 0) {
+        return '-1 -1 1 1';
     }
     
     const centerX = (bounds.minX + bounds.maxX) / 2;
     const centerY = (bounds.minY + bounds.maxY) / 2;
     
-    // Create a square viewBox centered on the content
-    const halfSize = maxDim / 2;
-    const left = centerX - halfSize;
-    const top = centerY - halfSize;
+    const left = centerX - (width / 2);
+    const bottom = centerY + (height / 2);
+    const top = centerY - (height / 2);
+    const right = centerX + (width / 2);
     
-    return `${left} ${top} ${maxDim} ${maxDim}`;
+    return `${left} ${top} ${right} ${bottom}`;
 }
 
 export const normalizeSVGOptions = <T extends UserDefinedResources>

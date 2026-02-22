@@ -11,3 +11,7 @@
   height: 100vh;
 
 }
+
+.ease-p3{
+  transition: all 0.3 ease;
+}

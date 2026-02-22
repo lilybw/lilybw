@@ -61,26 +61,26 @@ export default function App() {
           page-title-purple 
           page-title-position 
           page-title-surname-adjustment 
-          ${pageIndex() !== MainPageIndex ? "page-title-reduced" : ""}`}>
-        Wanscher
+          ${pageIndex() !== MainPageIndex ? "page-title-reduced" : ""}`}
+        >Wanscher
       </h1>
       <div class="chevy-container" style={ resolveNavChevyContainerStyle(pageIndex) }>
-        {Chevy(
-          [Path.L(20, 10), Path.L(40, 0), Path.L(35, 0), Path.L(20, 7), Path.L(5, 0)], 
-          { htmlAttributes: (defs) => ({ 
-              fill: defs.testGradient3,
-              onClick: () => setPageIndex(prev => prev + 1)
-            }),
-            modifiers: [ (pageIndex() != 0 ? Path.Modifier.Mirror.Y : Path.Modifier.NO_OP)() ] 
-          })
-        }
+        <div class="ease-p3" style={pageIndex() !== 0 ? { rotate: `180deg` } :  { rotate: `0deg` }}>
         {Chevy(
           [Path.L(20, 10), Path.L(40, 0), Path.L(35, 0), Path.L(20, 7), Path.L(5, 0)], 
           { htmlAttributes: (defs) => ({ 
               fill: defs.testGradient3,
               onClick: () => setPageIndex(prev => prev - 1)
-            }),
-            modifiers: [ ] 
+            })
+          })
+        }
+        </div>
+        {Chevy(
+          [Path.L(20, 10), Path.L(40, 0), Path.L(35, 0), Path.L(20, 7), Path.L(5, 0)], 
+          { htmlAttributes: (defs) => ({ 
+              fill: defs.testGradient3,
+              onClick: () => setPageIndex(prev => prev + 1)
+            })
           })
         }
       </div>
@@ -95,8 +95,9 @@ const resolveNavChevyContainerStyle = (pageIndex: Accessor<number>): JSX.CSSProp
   if (pageIndex() == 0) {
     return style;
   } 
-  style.bottom = `50%`;
+  style.bottom = `calc(50vh - 6.25rem)`;
   style.transform = `translateY(-50%)`;
+  style["row-gap"] = `4rem`;
 
   return style;
 }
