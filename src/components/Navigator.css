@@ -1,0 +1,37 @@
+.page-index-label {
+  width: fit-content;
+  height: fit-content;
+  right: 1rem;
+  line-height: 1;
+  font-size: 2.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.chevy-container {
+  position: absolute;
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  row-gap: 0;
+  right: 0%;
+  bottom: 0;
+  width: 3.3rem;
+  mix-blend-mode: difference;
+  transition: all 0.3s ease;
+  transform: translate(-50%, -50%);
+  filter: contrast(0);
+}
+.navigator-helper {
+  position: absolute;
+  width: 4vw;
+  --height: 6vh;
+  height: var(--height);
+  top: 50%;
+  right: 0%;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.navigator-helper-up {
+  top: calc(50% - var(--height));
+}
+.navigator-helper-down {
+}

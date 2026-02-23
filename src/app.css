@@ -1,59 +1,64 @@
-html{
+html {
   --site-breath-driver: 0; /* Goes between -1 to 1 */
   --site-elapsed-seconds: 0; /* Seconds since the page was loaded */
 
   --bg-saturation-multiplier: calc(var(--site-breath-driver) / 2 + 2);
   --bg-lightness-multiplier: 1;
-  --main-bg-gradient-stop-01: hsl(200, calc(50% * var(--bg-saturation-multiplier)), calc(80% * var(--bg-lightness-multiplier)));
-  --main-bg-gradient-stop-02: hsl(250, calc(50% * var(--bg-saturation-multiplier)), calc(80% * var(--bg-lightness-multiplier)));
+  --main-bg-gradient-stop-01: hsl(
+    200,
+    calc(50% * var(--bg-saturation-multiplier)),
+    calc(80% * var(--bg-lightness-multiplier))
+  );
+  --main-bg-gradient-stop-02: hsl(
+    250,
+    calc(50% * var(--bg-saturation-multiplier)),
+    calc(80% * var(--bg-lightness-multiplier))
+  );
   --main-bg-gradient-stop-03: hsl(0, 0%, 100%);
-  --main-bg-gradient-stop-04: hsl(0, calc(50% * var(--bg-saturation-multiplier)), calc(80% * var(--bg-lightness-multiplier)));
+  --main-bg-gradient-stop-04: hsl(
+    0,
+    calc(50% * var(--bg-saturation-multiplier)),
+    calc(80% * var(--bg-lightness-multiplier))
+  );
   --main-bg-gradient: linear-gradient(
-      -45deg, 
-      var(--main-bg-gradient-stop-01),
-      var(--main-bg-gradient-stop-02),
-      var(--main-bg-gradient-stop-03),
-      var(--main-bg-gradient-stop-01),
-      var(--main-bg-gradient-stop-02),
-      var(--main-bg-gradient-stop-03),
-      var(--main-bg-gradient-stop-01),
-      var(--main-bg-gradient-stop-02),
-      var(--main-bg-gradient-stop-03),
-      var(--main-bg-gradient-stop-01),
-      var(--main-bg-gradient-stop-02),
-      var(--main-bg-gradient-stop-03)
+    -45deg,
+    var(--main-bg-gradient-stop-01),
+    var(--main-bg-gradient-stop-02),
+    var(--main-bg-gradient-stop-03),
+    var(--main-bg-gradient-stop-01),
+    var(--main-bg-gradient-stop-02),
+    var(--main-bg-gradient-stop-03),
+    var(--main-bg-gradient-stop-01),
+    var(--main-bg-gradient-stop-02),
+    var(--main-bg-gradient-stop-03),
+    var(--main-bg-gradient-stop-01),
+    var(--main-bg-gradient-stop-02),
+    var(--main-bg-gradient-stop-03)
   );
 
   /* Due to the way colors are diffed against the background, there is no way to figure out how the color is going to turn out really.
   Pray to whichever god may find mercy upon your futile purpose. 
   DOBG = Diffed On BackGround
   */
-  --DOBG-aqua:hsl(0, 40%, 50%);
+  --DOBG-aqua: hsl(0, 40%, 50%);
   --DOBG-aqua-horizontal-gradient: linear-gradient(
-      0deg,
-      hsl(0, 80%, 50%),
-      hsl(0, 40%, 50%), 
-      hsl(0, 80%, 50%)
+    0deg,
+    hsl(0, 80%, 50%),
+    hsl(0, 40%, 50%),
+    hsl(0, 80%, 50%)
   );
 
-  --DOBG-purple:hsl(110, 40%, 40%); 
-  --DOBG-redbrown:hsl(180, 40%, 40%); 
-  --DOBG-copper:hsl(215, 100%, 45%); 
+  --DOBG-purple: hsl(110, 40%, 40%);
+  --DOBG-redbrown: hsl(180, 40%, 40%);
+  --DOBG-copper: hsl(215, 100%, 45%);
 
   margin: 0;
   padding: 0;
 }
-.page-index-label {
-  width: fit-content;
-  height: fit-content;
-  right: 1rem;
-  line-height: 1; 
-  font-size: 2.5rem;
-  top: 50%;
-  transform: translateY(-50%);
-}
 body {
-  font-family: Gordita, Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  font-family:
+    Gordita, Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue",
+    sans-serif;
 
   width: 100vw;
   height: 100vh;
@@ -66,7 +71,7 @@ body {
 
 .site-background {
   position: absolute;
-  top: 0; 
+  top: 0;
   left: 0;
 
   background: var(--main-bg-gradient);
@@ -78,36 +83,26 @@ body {
   height: 100vh;
   transition: all 0.3s ease;
 }
-.chevy-container {
-  position: absolute;
-  display: grid;
-  grid-template-rows: 1fr 1fr;
-  row-gap: 0;
-  right: 0%;
-  bottom: 0;
-  width: 3.3rem;
-  mix-blend-mode: difference;
-  transition: all 0.3s ease;
-  transform: translate(-50%, -50%);
-  filter: contrast(0);
-}
-
-.tenbyten{
+.tenbyten {
   position: absolute;
   width: 10vw;
   height: 10vh;
 }
 .site-svg-background {
-  position: absolute; 
-  left: 50%; 
-  top: 50%; 
-  width: 100%; 
-  height: 100%; 
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 100%;
+  height: 100%;
   transform: translate(-50%, -50%);
   transition: all 0.3s ease;
 }
 
-.page-title, .page-title-aqua-marine, .page-title-golden, .page-title-purple, .page-title-oscillating-hue  {
+.page-title,
+.page-title-aqua-marine,
+.page-title-golden,
+.page-title-purple,
+.page-title-oscillating-hue {
   mix-blend-mode: difference;
   -webkit-background-clip: text;
   background-clip: text;
@@ -146,14 +141,13 @@ body {
   line-height: var(--line-height);
   bottom: calc(var(--font-size) * var(--line-height));
   text-align: left;
-  margin:0;
+  margin: 0;
   padding: 0;
 }
 .page-title-surname-adjustment {
   bottom: 0;
   left: 1.2vh;
 }
-
 
 a {
   margin-right: 1rem;
